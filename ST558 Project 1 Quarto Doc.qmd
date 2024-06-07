@@ -3,6 +3,33 @@ title: "ST558 Project 1"
 author: "Flaherty and Lu"
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
-## This is a development branch from Jia Lu.
+# This is a development branch from Jia Lu.
+
+## Data Processing
+
+### First steps
+
+1. Read in data, select only columns (Area_name, STCOU, any colum that ends in "D"), and rename column Area_name as area_name.
+
+```{r}
+library(tidyverse)
+EDU01A_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv") |> 
+  select(Area_name, STCOU, ends_with("D")) |>
+  rename("area_name" = "Area_name")
+EDU01A_data
+```
+
+2. Convert the data into long format where each row has only one enrollment value for that area_name.
+
+```{r}
+EDU01A_data |> 
+  pivot_longer(cols = EDU010187D : EDU010196D,
+               names_to = "Enrollment",
+               values_to = "Value") |> 
+  print(n = 20)
+```
+

@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -106,10 +140,111 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="this-is-a-development-branch-from-jia-lu." class="level2">
-<h2 class="anchored" data-anchor-id="this-is-a-development-branch-from-jia-lu.">This is a development branch from Jia Lu.</h2>
+<section id="this-is-a-development-branch-from-jia-lu." class="level1">
+<h1>This is a development branch from Jia Lu.</h1>
+<section id="data-processing" class="level2">
+<h2 class="anchored" data-anchor-id="data-processing">Data Processing</h2>
+<section id="first-steps" class="level3">
+<h3 class="anchored" data-anchor-id="first-steps">First steps</h3>
+<ol type="1">
+<li>Read in data, select only columns (Area_name, STCOU, any colum that ends in “D”), and rename column Area_name as area_name.</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'tidyverse' was built under R version 4.3.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'ggplot2' was built under R version 4.3.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'readr' was built under R version 4.3.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>EDU01A_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Area_name, STCOU, <span class="fu">ends_with</span>(<span class="st">"D"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="st">"area_name"</span> <span class="ot">=</span> <span class="st">"Area_name"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 3198 Columns: 42
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (22): Area_name, STCOU, EDU010187N1, EDU010187N2, EDU010188N1, EDU010188...
+dbl (20): EDU010187F, EDU010187D, EDU010188F, EDU010188D, EDU010189F, EDU010...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>EDU01A_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3,198 × 12
+   area_name     STCOU EDU010187D EDU010188D EDU010189D EDU010190D EDU010191D
+   &lt;chr&gt;         &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+ 1 UNITED STATES 00000   40024299   39967624   40317775   40737600   41385442
+ 2 ALABAMA       01000     733735     728234     730048     728252     725541
+ 3 Autauga, AL   01001       6829       6900       6920       6847       7008
+ 4 Baldwin, AL   01003      16417      16465      16799      17054      17479
+ 5 Barbour, AL   01005       5071       5098       5068       5156       5173
+ 6 Bibb, AL      01007       3557       3508       3571       3621       3652
+ 7 Blount, AL    01009       7319       7223       7205       7209       7155
+ 8 Bullock, AL   01011       2014       1980       1985       1983       1985
+ 9 Butler, AL    01013       4640       4582       4610       4591       4544
+10 Calhoun, AL   01015      20939      20923      20907      20849      20768
+# ℹ 3,188 more rows
+# ℹ 5 more variables: EDU010192D &lt;dbl&gt;, EDU010193D &lt;dbl&gt;, EDU010194D &lt;dbl&gt;,
+#   EDU010195D &lt;dbl&gt;, EDU010196D &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<ol start="2" type="1">
+<li>Convert the data into long format where each row has only one enrollment value for that area_name.</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>EDU01A_data <span class="sc">|&gt;</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> EDU010187D <span class="sc">:</span> EDU010196D,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Enrollment"</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"Value"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 31,980 × 4
+   area_name     STCOU Enrollment    Value
+   &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt;
+ 1 UNITED STATES 00000 EDU010187D 40024299
+ 2 UNITED STATES 00000 EDU010188D 39967624
+ 3 UNITED STATES 00000 EDU010189D 40317775
+ 4 UNITED STATES 00000 EDU010190D 40737600
+ 5 UNITED STATES 00000 EDU010191D 41385442
+ 6 UNITED STATES 00000 EDU010192D 42088151
+ 7 UNITED STATES 00000 EDU010193D 42724710
+ 8 UNITED STATES 00000 EDU010194D 43369917
+ 9 UNITED STATES 00000 EDU010195D 43993459
+10 UNITED STATES 00000 EDU010196D 44715737
+11 ALABAMA       01000 EDU010187D   733735
+12 ALABAMA       01000 EDU010188D   728234
+13 ALABAMA       01000 EDU010189D   730048
+14 ALABAMA       01000 EDU010190D   728252
+15 ALABAMA       01000 EDU010191D   725541
+16 ALABAMA       01000 EDU010192D   726150
+17 ALABAMA       01000 EDU010193D   728014
+18 ALABAMA       01000 EDU010194D   730509
+19 ALABAMA       01000 EDU010195D   727989
+20 ALABAMA       01000 EDU010196D   736825
+# ℹ 31,960 more rows</code></pre>
+</div>
+</div>
 
 
+</section>
+</section>
 </section>
 
 </main> <!-- /main -->
