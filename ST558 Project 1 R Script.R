@@ -26,11 +26,11 @@ library(readxl)
 #e.g. EDU010180D is Public school enrollment Fall 1979-1980#
 #e.g. EDU010189D is Public school enrollment Fall 1988-1989#
 
-census1=read_csv("EDU01a.csv")       #repo, so same file path#
-str(census1)                         #get a sense of the data#
-summary(census1)                     #continue to get a sense of the data#
+census=read_csv("EDU01a.csv")       #repo, so same file path#
+str(census)                         #get a sense of the data#
+summary(census)                     #continue to get a sense of the data#
 
-census1=census1 |>                   
+census=census |>                   
   select(Area_name, STCOU, ends_with("D")) |>
   rename(area_name=Area_name) |>
   pivot_longer(cols=ends_with("D"),
@@ -43,9 +43,9 @@ census1=census1 |>
 #note, `=SORT(UNIQUE(RIGHT(range, 4))) used in Excel doc...#
 #...to ensure that no data from before 1910#` 
 
-survey_type=str_sub(census1$code, start=1, end=7)
+survey_type=str_sub(census$code, start=1, end=7)
 
-yy=as.numeric(str_sub(census1$code, start=8, end=9))
+yy=as.numeric(str_sub(census$code, start=8, end=9))
 min(yy)                                                      #all in 1900s here...#
 survey_year=as.numeric(ifelse(yy<=10,                        #... but want to make robust#
                               paste0("20", yy),
@@ -53,3 +53,18 @@ survey_year=as.numeric(ifelse(yy<=10,                        #... but want to ma
 rm(yy)                                                       #no need to keep#
 
 
+
+
+
+#####2. Function Writing#####
+
+data_reshape=function(file) {
+  a=read_csv(file)
+  b=a |>
+    select(Area_name, STCOU, ends_with("D")) |>
+    rename(area_name=Area_name) |>
+    pivot_longer(cols=ends_with("D"),
+                 names_to="code",    
+                 values_to="observed")
+  return(b)
+}
