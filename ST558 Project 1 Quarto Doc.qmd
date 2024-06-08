@@ -26,8 +26,10 @@ edu01a_data
 2. Convert the data into long format where each row has only one enrollment value for that area_name.
 
 ```{r}
-edu01a_data <- edu01a_data |> 
-  pivot_longer(cols = EDU010187D : EDU010196D,
+edu01a_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv") |> 
+  select(Area_name, STCOU, ends_with("D")) |>
+  rename("area_name" = "Area_name") |> 
+  pivot_longer(cols = is.numeric,
                names_to = "enrollment",
                values_to = "value")
 edu01a_data
@@ -37,8 +39,8 @@ edu01a_data
 
 ```{r}
 edu01a_data <- edu01a_data |> 
-  mutate(measurement = substr(edu01a_data$enrollment, 1, 7)) |> 
-  mutate(year = substr(edu01a_data$enrollment, 8, 9)) 
+  mutate(measurement = substr(enrollment, 1, 7)) |> 
+  mutate(year = substr(enrollment, 8, 9))
 
 edu01a_data$year <- year(parse_date_time(edu01a_data$year, "y"))
 edu01a_data
@@ -76,14 +78,49 @@ county_data
 non_county_data <- non_county_data |>
   mutate(division = ifelse(non_county_data$area_name %in% c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT"),"Division 1", 
                            ifelse(non_county_data$area_name %in% c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA"), "Division 2", 
-ifelse(non_county_data$area_name %in% c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN"), "Division 3",
-       ifelse(non_county_data$area_name %in% c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA"), "Division 4",
-              ifelse(non_county_data$area_name %in% c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA"), "Division 5",
-                     ifelse(non_county_data$area_name %in% c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE"), "Division 6",
-                            ifelse(non_county_data$area_name %in% c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS"), "Division 7",
-                                   ifelse(non_county_data$area_name %in% c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING"), "Division 8",
-                                          ifelse(non_county_data$area_name %in% c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON"), "Division 9",
-                                                 "ERROR"))))))))))
+                                  ifelse(non_county_data$area_name %in% c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN"), "Division 3",
+                                         ifelse(non_county_data$area_name %in% c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA"), "Division 4",
+                                                ifelse(non_county_data$area_name %in% c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA"), "Division 5",
+                                                       ifelse(non_county_data$area_name %in% c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE"), "Division 6",
+                                                              ifelse(non_county_data$area_name %in% c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS"), "Division 7",
+                                                                     ifelse(non_county_data$area_name %in% c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING"), "Division 8",
+                                                                            ifelse(non_county_data$area_name %in% c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON"), "Division 9",
+                                                                                   "ERROR"))))))))))
 non_county_data
 ```
 
+## Creating functions.
+
+- Write one function that does steps 1 & 2 above. Give an optional argument that allows the user to specify the name of the column representing the value (enrollment for these data sets).
+- Write another function that takes in the output of step 2 and does step 3 above.
+
+```{r}
+
+function_for_step_1_2 <- function(url, default_var_name = "value") {
+  tmp <- read_csv(url) |>
+    select(Area_name, STCOU, ends_with("D")) |>
+    rename("area_name" = "Area_name") |>   
+    pivot_longer(cols = is.numeric,
+                 names_to = "enrollment",
+                 values_to = default_var_name)
+  return(tmp)
+}
+
+function_for_step_3 <- function(tmp) {
+  tmp <- tmp |> 
+    mutate(measurement = substr(enrollment, 1, 7)) |>
+    mutate(year = substr(enrollment, 8, 9))
+  
+  tmp$year <- year(parse_date_time(tmp$year, "y"))
+  return(tmp)
+}
+  
+my_wrapper <- function(url, default_var_name = "value") {
+  result <- function_for_step_1_2(url, default_var_name) |>
+    function_for_step_3()
+
+  return(result)
+}
+my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv")
+
+```
