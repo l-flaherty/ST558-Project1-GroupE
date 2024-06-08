@@ -172,7 +172,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 ✖ dplyr::lag()    masks stats::lag()
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>EDU01A_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"</span>) <span class="sc">|&gt;</span> </span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>edu01a_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Area_name, STCOU, <span class="fu">ends_with</span>(<span class="st">"D"</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="st">"area_name"</span> <span class="ot">=</span> <span class="st">"Area_name"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -185,7 +185,7 @@ dbl (20): EDU010187F, EDU010187D, EDU010188F, EDU010188D, EDU010189F, EDU010...
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>EDU01A_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>edu01a_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 3,198 × 12
    area_name     STCOU EDU010187D EDU010188D EDU010189D EDU010190D EDU010191D
@@ -209,14 +209,14 @@ dbl (20): EDU010187F, EDU010187D, EDU010188F, EDU010188D, EDU010189F, EDU010...
 <li>Convert the data into long format where each row has only one enrollment value for that area_name.</li>
 </ol>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>EDU01A_data <span class="sc">|&gt;</span> </span>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>edu01a_data <span class="ot">&lt;-</span> edu01a_data <span class="sc">|&gt;</span> </span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> EDU010187D <span class="sc">:</span> EDU010196D,</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Enrollment"</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"Value"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"enrollment"</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"value"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>edu01a_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 31,980 × 4
-   area_name     STCOU Enrollment    Value
+   area_name     STCOU enrollment    value
    &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt;
  1 UNITED STATES 00000 EDU010187D 40024299
  2 UNITED STATES 00000 EDU010188D 39967624
@@ -228,17 +228,34 @@ dbl (20): EDU010187F, EDU010187D, EDU010188F, EDU010188D, EDU010189F, EDU010...
  8 UNITED STATES 00000 EDU010194D 43369917
  9 UNITED STATES 00000 EDU010195D 43993459
 10 UNITED STATES 00000 EDU010196D 44715737
-11 ALABAMA       01000 EDU010187D   733735
-12 ALABAMA       01000 EDU010188D   728234
-13 ALABAMA       01000 EDU010189D   730048
-14 ALABAMA       01000 EDU010190D   728252
-15 ALABAMA       01000 EDU010191D   725541
-16 ALABAMA       01000 EDU010192D   726150
-17 ALABAMA       01000 EDU010193D   728014
-18 ALABAMA       01000 EDU010194D   730509
-19 ALABAMA       01000 EDU010195D   727989
-20 ALABAMA       01000 EDU010196D   736825
-# ℹ 31,960 more rows</code></pre>
+# ℹ 31,970 more rows</code></pre>
+</div>
+</div>
+<ol start="3" type="1">
+<li>Parse the string from the “Enrollment” column to pull out the year, and convert the year into a numeric value. Grab the first three characters and following four digits to create a new variable.</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>edu01a_data <span class="ot">&lt;-</span> edu01a_data <span class="sc">|&gt;</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">measurement =</span> <span class="fu">substr</span>(edu01a_data<span class="sc">$</span>enrollment, <span class="dv">1</span>, <span class="dv">7</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year =</span> <span class="fu">substr</span>(edu01a_data<span class="sc">$</span>enrollment, <span class="dv">8</span>, <span class="dv">9</span>)) </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>edu01a_data<span class="sc">$</span>year <span class="ot">&lt;-</span> <span class="fu">year</span>(<span class="fu">parse_date_time</span>(edu01a_data<span class="sc">$</span>year, <span class="st">"y"</span>))</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>edu01a_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 31,980 × 6
+   area_name     STCOU enrollment    value measurement  year
+   &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;
+ 1 UNITED STATES 00000 EDU010187D 40024299 EDU0101      1987
+ 2 UNITED STATES 00000 EDU010188D 39967624 EDU0101      1988
+ 3 UNITED STATES 00000 EDU010189D 40317775 EDU0101      1989
+ 4 UNITED STATES 00000 EDU010190D 40737600 EDU0101      1990
+ 5 UNITED STATES 00000 EDU010191D 41385442 EDU0101      1991
+ 6 UNITED STATES 00000 EDU010192D 42088151 EDU0101      1992
+ 7 UNITED STATES 00000 EDU010193D 42724710 EDU0101      1993
+ 8 UNITED STATES 00000 EDU010194D 43369917 EDU0101      1994
+ 9 UNITED STATES 00000 EDU010195D 43993459 EDU0101      1995
+10 UNITED STATES 00000 EDU010196D 44715737 EDU0101      1996
+# ℹ 31,970 more rows</code></pre>
 </div>
 </div>
 
