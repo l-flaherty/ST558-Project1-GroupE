@@ -37,3 +37,19 @@ census1=census1 |>
                names_to="code",    
                values_to="observed")
 
+
+
+###1c. parse strings###
+#note, `=SORT(UNIQUE(RIGHT(range, 4))) used in Excel doc...#
+#...to ensure that no data from before 1910#` 
+
+survey_type=str_sub(census1$code, start=1, end=7)
+
+yy=as.numeric(str_sub(census1$code, start=8, end=9))
+min(yy)                                                      #all in 1900s here...#
+survey_year=as.numeric(ifelse(yy<=10,                        #... but want to make robust#
+                              paste0("20", yy),
+                              paste0("19", yy)))
+rm(yy)                                                       #no need to keep#
+
+
