@@ -92,10 +92,8 @@ non_county_data
 ## Creating functions.
 
 - Write one function that does steps 1 & 2 above. Give an optional argument that allows the user to specify the name of the column representing the value (enrollment for these data sets).
-- Write another function that takes in the output of step 2 and does step 3 above.
 
 ```{r}
-
 function_for_step_1_2 <- function(url, default_var_name = "value") {
   tmp <- read_csv(url) |>
     select(Area_name, STCOU, ends_with("D")) |>
@@ -105,7 +103,11 @@ function_for_step_1_2 <- function(url, default_var_name = "value") {
                  values_to = default_var_name)
   return(tmp)
 }
+```
 
+- Write another function that takes in the output of step 2 and does step 3 above.
+
+```{r}
 function_for_step_3 <- function(tmp) {
   tmp <- tmp |> 
     mutate(measurement = substr(enrollment, 1, 7)) |>
@@ -114,13 +116,62 @@ function_for_step_3 <- function(tmp) {
   tmp$year <- year(parse_date_time(tmp$year, "y"))
   return(tmp)
 }
-  
+```
+
+- Write a function to do step 5.
+
+```{r}
+function_for_step_5 <- function(county_data) {
+  county_data <- county_data |> 
+    mutate(state = substr(county_data$area_name, nchar(county_data$area_name) - 1, nchar(county_data$area_name)))
+  return(county_data)
+}
+```
+
+- Write a function to do step 6.
+
+```{r}
+function_for_step_6 <- function(non_county_data) {
+  non_county_data <- non_county_data |>
+    mutate(division = ifelse(non_county_data$area_name %in% c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT"),"Division 1", 
+                             ifelse(non_county_data$area_name %in% c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA"), "Division 2", 
+                                    ifelse(non_county_data$area_name %in% c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN"), "Division 3",
+                                           ifelse(non_county_data$area_name %in% c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA"), "Division 4",
+                                                  ifelse(non_county_data$area_name %in% c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA"), "Division 5",
+                                                         ifelse(non_county_data$area_name %in% c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE"), "Division 6",
+                                                                ifelse(non_county_data$area_name %in% c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS"), "Division 7",
+                                                                       ifelse(non_county_data$area_name %in% c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING"), "Division 8",
+                                                                              ifelse(non_county_data$area_name %in% c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON"), "Division 9",
+                                                                                     "ERROR"))))))))))
+  return(non_county_data)
+}
+```
+
+- Write another function that takes in the output from step 3 and creates the two tibbles in step 4, calls the above two functions (to perform steps 5 and 6), and returns two final tibbles.
+
+```{r}
+function_for_steps4_5_6 <- function(tmp) {
+  county_index <- grep(pattern = ", \\w\\w", tmp$area_name)
+  county_data <- tmp[county_index,]
+  class(county_data) <- c("county", class(county_data))
+  non_county_data <- tmp[- county_index,]
+  class(non_county_data) <- c("state", class(non_county_data))
+  county_data <- county_data |> function_for_step_5 ()
+  non_county_data <- non_county_data |> function_for_step_6 ()
+  return(list(county_data, non_county_data))
+} 
+```
+
+- Creating a wrapper function that takes in the URL of a .csv file in this format and the optional argument for the variable name, calls the functions you wrote above, and then returns the two tibbles.
+
+```{r}
 my_wrapper <- function(url, default_var_name = "value") {
   result <- function_for_step_1_2(url, default_var_name) |>
-    function_for_step_3()
-
+    function_for_step_3() |>
+    function_for_steps4_5_6 ()
   return(result)
 }
-my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv")
 
+my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv")
 ```
+
