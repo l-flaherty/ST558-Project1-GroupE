@@ -52,9 +52,21 @@ edu01a_data
 county_index <- grep(pattern = ", \\w\\w", edu01a_data$area_name)
 
 county_data <- edu01a_data[county_index,]
+county_data
 class(county_data) <- c("county", class(county_data))
+class(county_data)
 
 non_county_data <- edu01a_data[- county_index,]
+non_county_data
 class(non_county_data) <- c("state", class(non_county_data))
+class(non_county_data)
+```
+
+5. For the county level tibble, create a new variable that describes which state one of these county measurements corresponds to (the two digit abbreviation).
+
+```{r}
+county_data <- county_data |> 
+  mutate(state = substr(county_data$area_name, nchar(county_data$area_name) - 1, nchar(county_data$area_name)))
+county_data
 ```
 

@@ -269,10 +269,75 @@ dbl (20): EDU010187F, EDU010187D, EDU010188F, EDU010188D, EDU010189F, EDU010...
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>county_index <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="at">pattern =</span> <span class="st">", </span><span class="sc">\\</span><span class="st">w</span><span class="sc">\\</span><span class="st">w"</span>, edu01a_data<span class="sc">$</span>area_name)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>county_data <span class="ot">&lt;-</span> edu01a_data[county_index,]</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(county_data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"county"</span>, <span class="fu">class</span>(county_data))</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>non_county_data <span class="ot">&lt;-</span> edu01a_data[<span class="sc">-</span> county_index,]</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(non_county_data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"state"</span>, <span class="fu">class</span>(non_county_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>county_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 31,450 × 6
+   area_name   STCOU enrollment value measurement  year
+   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;
+ 1 Autauga, AL 01001 EDU010187D  6829 EDU0101      1987
+ 2 Autauga, AL 01001 EDU010188D  6900 EDU0101      1988
+ 3 Autauga, AL 01001 EDU010189D  6920 EDU0101      1989
+ 4 Autauga, AL 01001 EDU010190D  6847 EDU0101      1990
+ 5 Autauga, AL 01001 EDU010191D  7008 EDU0101      1991
+ 6 Autauga, AL 01001 EDU010192D  7137 EDU0101      1992
+ 7 Autauga, AL 01001 EDU010193D  7152 EDU0101      1993
+ 8 Autauga, AL 01001 EDU010194D  7381 EDU0101      1994
+ 9 Autauga, AL 01001 EDU010195D  7568 EDU0101      1995
+10 Autauga, AL 01001 EDU010196D  7834 EDU0101      1996
+# ℹ 31,440 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(county_data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"county"</span>, <span class="fu">class</span>(county_data))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(county_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "county"     "tbl_df"     "tbl"        "data.frame"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>non_county_data <span class="ot">&lt;-</span> edu01a_data[<span class="sc">-</span> county_index,]</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>non_county_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 530 × 6
+   area_name     STCOU enrollment    value measurement  year
+   &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;
+ 1 UNITED STATES 00000 EDU010187D 40024299 EDU0101      1987
+ 2 UNITED STATES 00000 EDU010188D 39967624 EDU0101      1988
+ 3 UNITED STATES 00000 EDU010189D 40317775 EDU0101      1989
+ 4 UNITED STATES 00000 EDU010190D 40737600 EDU0101      1990
+ 5 UNITED STATES 00000 EDU010191D 41385442 EDU0101      1991
+ 6 UNITED STATES 00000 EDU010192D 42088151 EDU0101      1992
+ 7 UNITED STATES 00000 EDU010193D 42724710 EDU0101      1993
+ 8 UNITED STATES 00000 EDU010194D 43369917 EDU0101      1994
+ 9 UNITED STATES 00000 EDU010195D 43993459 EDU0101      1995
+10 UNITED STATES 00000 EDU010196D 44715737 EDU0101      1996
+# ℹ 520 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(non_county_data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"state"</span>, <span class="fu">class</span>(non_county_data))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(non_county_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "state"      "tbl_df"     "tbl"        "data.frame"</code></pre>
+</div>
+</div>
+<ol start="5" type="1">
+<li>For the county level tibble, create a new variable that describes which state one of these county measurements corresponds to (the two digit abbreviation).</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>county_data <span class="ot">&lt;-</span> county_data <span class="sc">|&gt;</span> </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">state =</span> <span class="fu">substr</span>(county_data<span class="sc">$</span>area_name, <span class="fu">nchar</span>(county_data<span class="sc">$</span>area_name) <span class="sc">-</span> <span class="dv">1</span>, <span class="fu">nchar</span>(county_data<span class="sc">$</span>area_name)))</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>county_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 31,450 × 7
+   area_name   STCOU enrollment value measurement  year state
+   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;
+ 1 Autauga, AL 01001 EDU010187D  6829 EDU0101      1987 AL   
+ 2 Autauga, AL 01001 EDU010188D  6900 EDU0101      1988 AL   
+ 3 Autauga, AL 01001 EDU010189D  6920 EDU0101      1989 AL   
+ 4 Autauga, AL 01001 EDU010190D  6847 EDU0101      1990 AL   
+ 5 Autauga, AL 01001 EDU010191D  7008 EDU0101      1991 AL   
+ 6 Autauga, AL 01001 EDU010192D  7137 EDU0101      1992 AL   
+ 7 Autauga, AL 01001 EDU010193D  7152 EDU0101      1993 AL   
+ 8 Autauga, AL 01001 EDU010194D  7381 EDU0101      1994 AL   
+ 9 Autauga, AL 01001 EDU010195D  7568 EDU0101      1995 AL   
+10 Autauga, AL 01001 EDU010196D  7834 EDU0101      1996 AL   
+# ℹ 31,440 more rows</code></pre>
+</div>
 </div>
 
 
