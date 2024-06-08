@@ -44,3 +44,17 @@ edu01a_data$year <- year(parse_date_time(edu01a_data$year, "y"))
 edu01a_data
 ```
 
+4. Creating two data sets:
+- One data set that contains only non-county data. Add a class to the tibble called state.
+- One data set that contains only county level data. Add a class to the tibble called county
+
+```{r}
+county_index <- grep(pattern = ", \\w\\w", edu01a_data$area_name)
+
+county_data <- edu01a_data[county_index,]
+class(county_data) <- c("county", class(county_data))
+
+non_county_data <- edu01a_data[- county_index,]
+class(non_county_data) <- c("state", class(non_county_data))
+```
+
