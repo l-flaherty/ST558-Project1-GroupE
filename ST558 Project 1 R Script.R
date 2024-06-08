@@ -56,6 +56,20 @@ rm(yy)                                                       #no need to keep#
 
 
 
+###1d. County vs. Non-county ###
+unique(census$area_name)                           #investigate data patterns#
+
+a=str_locate(census$area_name, ",")                #no commas in non-county#
+noncounty=census[which(is.na(a)),]                 #keep non-county data together#
+county=census[which(!is.na(a)),]                   #keep county data together#
+
+unique(noncounty$area_name)                        #double check things work as expected#
+unique(county$area_name)
+
+
+
+
+
 #####2. Function Writing#####
 
 data_reshape=function(file) {
