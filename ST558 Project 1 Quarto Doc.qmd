@@ -70,3 +70,20 @@ county_data <- county_data |>
 county_data
 ```
 
+6. For the non-county level tibble, create a new variable called “division” corresponding to the state’s classification of division here. If row corresponds to a non-state (i.e. UNITED STATES), return ERROR for the division.
+
+```{r}
+non_county_data <- non_county_data |>
+  mutate(division = ifelse(non_county_data$area_name %in% c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT"),"Division 1", 
+                           ifelse(non_county_data$area_name %in% c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA"), "Division 2", 
+ifelse(non_county_data$area_name %in% c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN"), "Division 3",
+       ifelse(non_county_data$area_name %in% c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA"), "Division 4",
+              ifelse(non_county_data$area_name %in% c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA"), "Division 5",
+                     ifelse(non_county_data$area_name %in% c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE"), "Division 6",
+                            ifelse(non_county_data$area_name %in% c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS"), "Division 7",
+                                   ifelse(non_county_data$area_name %in% c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING"), "Division 8",
+                                          ifelse(non_county_data$area_name %in% c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON"), "Division 9",
+                                                 "ERROR"))))))))))
+non_county_data
+```
+
