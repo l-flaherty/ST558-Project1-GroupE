@@ -589,44 +589,45 @@ dbl (20): EDU010197F, EDU010197D, EDU010198F, EDU010198D, EDU010199F, EDU010...
 <span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>data_combined <span class="ot">&lt;-</span> <span class="fu">combining_data</span>(edu01a_data_from_wrapper, edu01b_data_from_wrapper)</span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>data_combined</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[[1]]
-# A tibble: 62,900 × 7
-   area_name   STCOU enrollment value measurement  year state
-   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;
- 1 Autauga, AL 01001 EDU010187D  6829 EDU0101      1987 AL   
- 2 Autauga, AL 01001 EDU010188D  6900 EDU0101      1988 AL   
- 3 Autauga, AL 01001 EDU010189D  6920 EDU0101      1989 AL   
- 4 Autauga, AL 01001 EDU010190D  6847 EDU0101      1990 AL   
- 5 Autauga, AL 01001 EDU010191D  7008 EDU0101      1991 AL   
- 6 Autauga, AL 01001 EDU010192D  7137 EDU0101      1992 AL   
- 7 Autauga, AL 01001 EDU010193D  7152 EDU0101      1993 AL   
- 8 Autauga, AL 01001 EDU010194D  7381 EDU0101      1994 AL   
- 9 Autauga, AL 01001 EDU010195D  7568 EDU0101      1995 AL   
-10 Autauga, AL 01001 EDU010196D  7834 EDU0101      1996 AL   
-# ℹ 62,890 more rows
-
-[[2]]
-# A tibble: 1,060 × 7
-   area_name     STCOU enrollment    value measurement  year division
-   &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;   
- 1 UNITED STATES 00000 EDU010187D 40024299 EDU0101      1987 ERROR   
- 2 UNITED STATES 00000 EDU010188D 39967624 EDU0101      1988 ERROR   
- 3 UNITED STATES 00000 EDU010189D 40317775 EDU0101      1989 ERROR   
- 4 UNITED STATES 00000 EDU010190D 40737600 EDU0101      1990 ERROR   
- 5 UNITED STATES 00000 EDU010191D 41385442 EDU0101      1991 ERROR   
- 6 UNITED STATES 00000 EDU010192D 42088151 EDU0101      1992 ERROR   
- 7 UNITED STATES 00000 EDU010193D 42724710 EDU0101      1993 ERROR   
- 8 UNITED STATES 00000 EDU010194D 43369917 EDU0101      1994 ERROR   
- 9 UNITED STATES 00000 EDU010195D 43993459 EDU0101      1995 ERROR   
-10 UNITED STATES 00000 EDU010196D 44715737 EDU0101      1996 ERROR   
-# ℹ 1,050 more rows</code></pre>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>data_combined[[<span class="dv">2</span>]] <span class="sc">|&gt;</span> <span class="fu">View</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-
-
 </section>
+</section>
+<section id="writing-a-generic-function-for-summarizing." class="level2">
+<h2 class="anchored" data-anchor-id="writing-a-generic-function-for-summarizing.">Writing a Generic Function for Summarizing.</h2>
+<ul>
+<li>Write a function that plots the mean value of the statistic (enrollment for this data set) across the years for each Division. That is, on the x-axis we want the numeric year value, on the y-axis we want the mean of the statistic for each Division and numeric year. Remove observations at the ERROR setting of Division.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>plot.state <span class="ot">&lt;-</span> <span class="cf">function</span>(df, <span class="at">default_var_name =</span> value) {</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  df <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(division <span class="sc">!=</span> <span class="st">"ERROR"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(division, year) <span class="sc">|&gt;</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">mean_value =</span> <span class="fu">mean</span>({{default_var_name}}))</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> mean_value, <span class="at">color =</span> division)) <span class="sc">+</span> </span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Year"</span>, </span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">"Mean Enrollment Value"</span>, </span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> <span class="st">"Division"</span>, </span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Mean Enrollment Value by Year and Division"</span>)</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.state</span>(data_combined[[<span class="dv">2</span>]], <span class="at">default_var_name =</span> value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'division'. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ST558-Project-1-Quarto-Doc_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
 </section>
 </section>
 

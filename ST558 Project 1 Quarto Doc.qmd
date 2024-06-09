@@ -13,7 +13,7 @@ editor_options:
 
 ### First steps
 
-1. Read in data, select only columns (Area_name, STCOU, any colum that ends in "D"), and rename column Area_name as area_name.
+1.  Read in data, select only columns (Area_name, STCOU, any colum that ends in "D"), and rename column Area_name as area_name.
 
 ```{r}
 library(tidyverse)
@@ -23,7 +23,7 @@ edu01a_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
 edu01a_data
 ```
 
-2. Convert the data into long format where each row has only one enrollment value for that area_name.
+2.  Convert the data into long format where each row has only one enrollment value for that area_name.
 
 ```{r}
 edu01a_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv") |> 
@@ -35,7 +35,7 @@ edu01a_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
 edu01a_data
 ```
 
-3. Parse the string from the "Enrollment" column to pull out the year, and convert the year into a numeric value. Grab the first three characters and following four digits to create a new variable.
+3.  Parse the string from the "Enrollment" column to pull out the year, and convert the year into a numeric value. Grab the first three characters and following four digits to create a new variable.
 
 ```{r}
 edu01a_data <- edu01a_data |> 
@@ -46,9 +46,10 @@ edu01a_data$year <- year(parse_date_time(edu01a_data$year, "y"))
 edu01a_data
 ```
 
-4. Creating two data sets:
-- One data set that contains only non-county data. Add a class to the tibble called state.
-- One data set that contains only county level data. Add a class to the tibble called county
+4.  Creating two data sets:
+
+-   One data set that contains only non-county data. Add a class to the tibble called state.
+-   One data set that contains only county level data. Add a class to the tibble called county
 
 ```{r}
 county_index <- grep(pattern = ", \\w\\w", edu01a_data$area_name)
@@ -64,7 +65,7 @@ class(non_county_data) <- c("state", class(non_county_data))
 class(non_county_data)
 ```
 
-5. For the county level tibble, create a new variable that describes which state one of these county measurements corresponds to (the two digit abbreviation).
+5.  For the county level tibble, create a new variable that describes which state one of these county measurements corresponds to (the two digit abbreviation).
 
 ```{r}
 county_data <- county_data |> 
@@ -72,7 +73,7 @@ county_data <- county_data |>
 county_data
 ```
 
-6. For the non-county level tibble, create a new variable called “division” corresponding to the state’s classification of division here. If row corresponds to a non-state (i.e. UNITED STATES), return ERROR for the division.
+6.  For the non-county level tibble, create a new variable called “division” corresponding to the state’s classification of division here. If row corresponds to a non-state (i.e. UNITED STATES), return ERROR for the division.
 
 ```{r}
 non_county_data <- non_county_data |>
@@ -91,7 +92,7 @@ non_county_data
 
 ## Creating functions.
 
-- Write one function that does steps 1 & 2 above. Give an optional argument that allows the user to specify the name of the column representing the value (enrollment for these data sets).
+-   Write one function that does steps 1 & 2 above. Give an optional argument that allows the user to specify the name of the column representing the value (enrollment for these data sets).
 
 ```{r}
 function_for_step_1_2 <- function(url, default_var_name = "value") {
@@ -105,7 +106,7 @@ function_for_step_1_2 <- function(url, default_var_name = "value") {
 }
 ```
 
-- Write another function that takes in the output of step 2 and does step 3 above.
+-   Write another function that takes in the output of step 2 and does step 3 above.
 
 ```{r}
 function_for_step_3 <- function(tmp) {
@@ -118,7 +119,7 @@ function_for_step_3 <- function(tmp) {
 }
 ```
 
-- Write a function to do step 5.
+-   Write a function to do step 5.
 
 ```{r}
 function_for_step_5 <- function(county_data) {
@@ -128,7 +129,7 @@ function_for_step_5 <- function(county_data) {
 }
 ```
 
-- Write a function to do step 6.
+-   Write a function to do step 6.
 
 ```{r}
 function_for_step_6 <- function(non_county_data) {
@@ -147,7 +148,7 @@ function_for_step_6 <- function(non_county_data) {
 }
 ```
 
-- Write another function that takes in the output from step 3 and creates the two tibbles in step 4, calls the above two functions (to perform steps 5 and 6), and returns two final tibbles.
+-   Write another function that takes in the output from step 3 and creates the two tibbles in step 4, calls the above two functions (to perform steps 5 and 6), and returns two final tibbles.
 
 ```{r}
 function_for_steps4_5_6 <- function(tmp) {
@@ -162,7 +163,7 @@ function_for_steps4_5_6 <- function(tmp) {
 } 
 ```
 
-- Creating a wrapper function that takes in the URL of a .csv file in this format and the optional argument for the variable name, calls the functions you wrote above, and then returns the two tibbles.
+-   Creating a wrapper function that takes in the URL of a .csv file in this format and the optional argument for the variable name, calls the functions you wrote above, and then returns the two tibbles.
 
 ```{r}
 my_wrapper <- function(url, default_var_name = "value") {
@@ -175,7 +176,7 @@ my_wrapper <- function(url, default_var_name = "value") {
 
 ### Call it and combine data.
 
-- Call the function two times and parse the two .csv files mentioned so far.
+-   Call the function two times and parse the two .csv files mentioned so far.
 
 ```{r}
 edu01a_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
@@ -186,7 +187,7 @@ my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv")
 edu01b_data_from_wrapper
 ```
 
-- Write a single short function that takes in the results of two calls to the wrapper function.
+-   Write a single short function that takes in the results of two calls to the wrapper function.
 
 ```{r}
 combining_data <- function(tmp_1, tmp_2) {
@@ -197,6 +198,29 @@ combining_data <- function(tmp_1, tmp_2) {
 }
 
 data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
-data_combined
+data_combined[[2]] |> View()
 ```
 
+## Writing a Generic Function for Summarizing.
+
+- Write a function that plots the mean value of the statistic (enrollment for this data set) across the years for each Division. That is, on the x-axis we want the numeric year value, on the y-axis we want the mean of the statistic for each Division and numeric year. Remove observations at the ERROR setting of Division.
+
+```{r}
+
+plot.state <- function(df, default_var_name = value) {
+  df <- df |>
+    filter(division != "ERROR") |>
+    group_by(division, year) |>
+    summarize(mean_value = mean({{default_var_name}}))
+  
+  ggplot(df, aes(x = year, y = mean_value, color = division)) + 
+    geom_line() +
+    labs(x = "Year", 
+         y = "Mean Enrollment Value", 
+         color = "Division", 
+         title = "Mean Enrollment Value by Year and Division")
+}
+
+plot.state(data_combined[[2]], default_var_name = value)
+
+```
