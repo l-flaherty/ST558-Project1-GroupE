@@ -171,7 +171,32 @@ my_wrapper <- function(url, default_var_name = "value") {
     function_for_steps4_5_6 ()
   return(result)
 }
+```
 
+### Call it and combine data.
+
+- Call the function two times and parse the two .csv files mentioned so far.
+
+```{r}
+edu01a_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
+edu01a_data_from_wrapper
+
+edu01b_data_from_wrapper <-
 my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv")
+edu01b_data_from_wrapper
+```
+
+- Write a single short function that takes in the results of two calls to the wrapper function.
+
+```{r}
+combining_data <- function(tmp_1, tmp_2) {
+  county_data_combined <- dplyr::bind_rows(tmp_1[[1]], tmp_2[[1]])
+  non_county_data_combined <- dplyr::bind_rows(tmp_1[[2]], tmp_2[[2]])
+  tmp_3 <- list(county_data_combined, non_county_data_combined)
+  return(tmp_3)
+}
+
+data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
+data_combined
 ```
 

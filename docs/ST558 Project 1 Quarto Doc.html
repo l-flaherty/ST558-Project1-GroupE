@@ -477,9 +477,61 @@ dbl (20): EDU010187F, EDU010187D, EDU010188F, EDU010188D, EDU010189F, EDU010...
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">function_for_step_3</span>() <span class="sc">|&gt;</span></span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">function_for_steps4_5_6</span> ()</span>
 <span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="fu">my_wrapper</span>(<span class="st">"https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="call-it-and-combine-data." class="level3">
+<h3 class="anchored" data-anchor-id="call-it-and-combine-data.">Call it and combine data.</h3>
+<ul>
+<li>Call the function two times and parse the two .csv files mentioned so far.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>edu01a_data_from_wrapper <span class="ot">&lt;-</span> <span class="fu">my_wrapper</span>(<span class="st">"https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 3198 Columns: 42
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (22): Area_name, STCOU, EDU010187N1, EDU010187N2, EDU010188N1, EDU010188...
+dbl (20): EDU010187F, EDU010187D, EDU010188F, EDU010188D, EDU010189F, EDU010...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>edu01a_data_from_wrapper</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+# A tibble: 31,450 × 7
+   area_name   STCOU enrollment value measurement  year state
+   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;
+ 1 Autauga, AL 01001 EDU010187D  6829 EDU0101      1987 AL   
+ 2 Autauga, AL 01001 EDU010188D  6900 EDU0101      1988 AL   
+ 3 Autauga, AL 01001 EDU010189D  6920 EDU0101      1989 AL   
+ 4 Autauga, AL 01001 EDU010190D  6847 EDU0101      1990 AL   
+ 5 Autauga, AL 01001 EDU010191D  7008 EDU0101      1991 AL   
+ 6 Autauga, AL 01001 EDU010192D  7137 EDU0101      1992 AL   
+ 7 Autauga, AL 01001 EDU010193D  7152 EDU0101      1993 AL   
+ 8 Autauga, AL 01001 EDU010194D  7381 EDU0101      1994 AL   
+ 9 Autauga, AL 01001 EDU010195D  7568 EDU0101      1995 AL   
+10 Autauga, AL 01001 EDU010196D  7834 EDU0101      1996 AL   
+# ℹ 31,440 more rows
+
+[[2]]
+# A tibble: 530 × 7
+   area_name     STCOU enrollment    value measurement  year division
+   &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;   
+ 1 UNITED STATES 00000 EDU010187D 40024299 EDU0101      1987 ERROR   
+ 2 UNITED STATES 00000 EDU010188D 39967624 EDU0101      1988 ERROR   
+ 3 UNITED STATES 00000 EDU010189D 40317775 EDU0101      1989 ERROR   
+ 4 UNITED STATES 00000 EDU010190D 40737600 EDU0101      1990 ERROR   
+ 5 UNITED STATES 00000 EDU010191D 41385442 EDU0101      1991 ERROR   
+ 6 UNITED STATES 00000 EDU010192D 42088151 EDU0101      1992 ERROR   
+ 7 UNITED STATES 00000 EDU010193D 42724710 EDU0101      1993 ERROR   
+ 8 UNITED STATES 00000 EDU010194D 43369917 EDU0101      1994 ERROR   
+ 9 UNITED STATES 00000 EDU010195D 43993459 EDU0101      1995 ERROR   
+10 UNITED STATES 00000 EDU010196D 44715737 EDU0101      1996 ERROR   
+# ℹ 520 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>edu01b_data_from_wrapper <span class="ot">&lt;-</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">my_wrapper</span>(<span class="st">"https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Rows: 3198 Columns: 42
 ── Column specification ────────────────────────────────────────────────────────
@@ -490,6 +542,7 @@ dbl (20): EDU010197F, EDU010197D, EDU010198F, EDU010198D, EDU010199F, EDU010...
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>edu01b_data_from_wrapper</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[[1]]
 # A tibble: 31,450 × 7
@@ -524,8 +577,56 @@ dbl (20): EDU010197F, EDU010197D, EDU010198F, EDU010198D, EDU010199F, EDU010...
 # ℹ 520 more rows</code></pre>
 </div>
 </div>
+<ul>
+<li>Write a single short function that takes in the results of two calls to the wrapper function.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>combining_data <span class="ot">&lt;-</span> <span class="cf">function</span>(tmp_1, tmp_2) {</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  county_data_combined <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(tmp_1[[<span class="dv">1</span>]], tmp_2[[<span class="dv">1</span>]])</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  non_county_data_combined <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(tmp_1[[<span class="dv">2</span>]], tmp_2[[<span class="dv">2</span>]])</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  tmp_3 <span class="ot">&lt;-</span> <span class="fu">list</span>(county_data_combined, non_county_data_combined)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(tmp_3)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>data_combined <span class="ot">&lt;-</span> <span class="fu">combining_data</span>(edu01a_data_from_wrapper, edu01b_data_from_wrapper)</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>data_combined</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+# A tibble: 62,900 × 7
+   area_name   STCOU enrollment value measurement  year state
+   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;
+ 1 Autauga, AL 01001 EDU010187D  6829 EDU0101      1987 AL   
+ 2 Autauga, AL 01001 EDU010188D  6900 EDU0101      1988 AL   
+ 3 Autauga, AL 01001 EDU010189D  6920 EDU0101      1989 AL   
+ 4 Autauga, AL 01001 EDU010190D  6847 EDU0101      1990 AL   
+ 5 Autauga, AL 01001 EDU010191D  7008 EDU0101      1991 AL   
+ 6 Autauga, AL 01001 EDU010192D  7137 EDU0101      1992 AL   
+ 7 Autauga, AL 01001 EDU010193D  7152 EDU0101      1993 AL   
+ 8 Autauga, AL 01001 EDU010194D  7381 EDU0101      1994 AL   
+ 9 Autauga, AL 01001 EDU010195D  7568 EDU0101      1995 AL   
+10 Autauga, AL 01001 EDU010196D  7834 EDU0101      1996 AL   
+# ℹ 62,890 more rows
+
+[[2]]
+# A tibble: 1,060 × 7
+   area_name     STCOU enrollment    value measurement  year division
+   &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;   
+ 1 UNITED STATES 00000 EDU010187D 40024299 EDU0101      1987 ERROR   
+ 2 UNITED STATES 00000 EDU010188D 39967624 EDU0101      1988 ERROR   
+ 3 UNITED STATES 00000 EDU010189D 40317775 EDU0101      1989 ERROR   
+ 4 UNITED STATES 00000 EDU010190D 40737600 EDU0101      1990 ERROR   
+ 5 UNITED STATES 00000 EDU010191D 41385442 EDU0101      1991 ERROR   
+ 6 UNITED STATES 00000 EDU010192D 42088151 EDU0101      1992 ERROR   
+ 7 UNITED STATES 00000 EDU010193D 42724710 EDU0101      1993 ERROR   
+ 8 UNITED STATES 00000 EDU010194D 43369917 EDU0101      1994 ERROR   
+ 9 UNITED STATES 00000 EDU010195D 43993459 EDU0101      1995 ERROR   
+10 UNITED STATES 00000 EDU010196D 44715737 EDU0101      1996 ERROR   
+# ℹ 1,050 more rows</code></pre>
+</div>
+</div>
 
 
+</section>
 </section>
 </section>
 
