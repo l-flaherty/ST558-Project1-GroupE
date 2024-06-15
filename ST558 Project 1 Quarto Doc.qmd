@@ -5,23 +5,42 @@ format: html
 editor: visual
 ---
 
-## Quarto
+## Data Processing
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+We are interested in various types of census data, and aim to create functions that return visuals of said data from inputs of either urls or csv files. To start, we look at a single file before generalizing.
 
-## Running Code
+The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv>, where We download it locally and then loaded it into our R session. Since we are using R projects, and since we saved the download in the working directory for the project, we don't need to worry about specifying file paths. To start our analysis, we installed any packages we might need with `install.packages`, and call them here with `library()`.
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+```{r, results='hide'}
+library(tidyverse)            
+library(readr)
+library(readxl)
 
-```{r}
-1 + 1
+
+census=read_csv("EDU01a.csv")       
 ```
 
-You can add options to executable code like this
+### Initial Data Exploration
+To get an initial glance at the data, we try normal summary functions. Since the output of these functions is so long, we admit it here. What is clear from the output is that without additional context for what the variables mean, the file contents would be very confusing.
 
-```{r}
-#| echo: false
-2 * 2
+```{r, results='hide'}
+str(census)
+summary(census)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+Luckily we are given some of this information. The file contains census data from 2010, with distinct areas in each row, and distinct census surveys in each column. The census surveys follow a code: the first three characters give the survey type (for example **AGE** in the `AGE010180D` code refers to age, while **EDU** in the  `EDU640180D` code refers to education), the next four give the type of value from the survey (for example **6401** in the `EDU640180D` code refers to years of school complete, while **0101** in the `EDU010189D` code refers to public school enrollment), and the next two give the year (for example the **89** in the `EDU010189D` code refers to 1989). There is no data from before 1910. 
+
+
+### Data Manipulation And Wrangling
+
+As is, the data is not 
+
+```{r}
+census=census |>                   
+  select(Area_name, STCOU, ends_with("D")) |>
+  rename(area_name=Area_name) |>
+  pivot_longer(cols=ends_with("D"),
+               names_to="code",    
+               values_to="observed")
+```
+

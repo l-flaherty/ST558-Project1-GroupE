@@ -100,7 +100,14 @@ for (i in 1:nrow(noncounty)) {
 noncounty$division=division
 
 
+noncounty|>
+  group_by(area_name) |>
+  summarize(across(where(is.numeric), mean))
 
+myvector <- c("Tall", "Short", "Tall", "Short")
+
+# calling the as.factor() function 
+b=as.factor(myvector)
 
 
 #####2. Function Writing#####
