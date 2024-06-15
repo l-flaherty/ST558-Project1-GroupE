@@ -28,12 +28,14 @@ str(census)
 summary(census)
 ```
 
-Luckily we are given some of this information. The file contains census data from 2010, with distinct areas in each row, and distinct census surveys in each column. The census surveys follow a code: the first three characters give the survey type (for example **AGE** in the `AGE010180D` code refers to age, while **EDU** in the  `EDU640180D` code refers to education), the next four give the type of value from the survey (for example **6401** in the `EDU640180D` code refers to years of school complete, while **0101** in the `EDU010189D` code refers to public school enrollment), and the next two give the year (for example the **89** in the `EDU010189D` code refers to 1989). There is no data from before 1910. 
+Luckily we are given some of this information. The file contains census data from 2010, with distinct areas in each row, and census surveys in each column. The census surveys follow a code: the first three characters give the survey type (for example **AGE** in the `AGE010180D` code refers to age, while **EDU** in the  `EDU640180D` code refers to education), the next four give the type of value from the survey (for example **6401** in the `EDU640180D` code refers to years of school complete, while **0101** in the `EDU010189D` code refers to public school enrollment), and the next two give the year (for example the **89** in the `EDU010189D` code refers to 1989). There is no data from before 1910. 
 
 
 ### Data Manipulation And Wrangling
 
-As is, the data is not 
+As is, the data is not in a great format for analysis. We want to filter down the data to just the columns we actually care about, and to put it in long format. That is, instead of a distinct area in each row with many different census types in the columns, we want to have just one record for each row, with an additional column added for the census code.
+
+To choose the columns we want, ew use the `select()` function from the `tidyverse`. To keep our naming conventions consistent, we also want to `rename()` certain columns. Additionally, we want to transform our data structure so that the columns holding count data are put in a single column, and the data from those columns put in a new column called `observed`. We can do so with the `pivot_longer()` function. Putting all these steps together with the natural chaining operation `|>`, we can overwrite our object as follows: 
 
 ```{r}
 census=census |>                   
