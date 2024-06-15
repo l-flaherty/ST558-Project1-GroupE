@@ -46,9 +46,9 @@ census=census |>
 survey_type=str_sub(census$code, start=1, end=7)
 
 yy=as.numeric(str_sub(census$code, start=8, end=9))
-min(yy)                                                      #all in 1900s here...#
+range(yy)                                                    #all in 1900s here...#
 survey_year=as.numeric(ifelse(yy<=10,                        #... but want to make robust#
-                              paste0("20", yy),
+                              paste0("200", yy),
                               paste0("19", yy)))
 rm(yy)                                                       #no need to keep#
 

@@ -13,7 +13,6 @@ The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU0
 
 ```{r, results='hide'}
 library(tidyverse)            
-library(readr)
 library(readxl)
 
 
@@ -32,6 +31,7 @@ Luckily we are given some of this information. The file contains census data fro
 
 
 ### Data Manipulation And Wrangling
+#### Select, Reshape, And Rename
 
 As is, the data is not in a great format for analysis. We want to filter down the data to just the columns we actually care about, and to put it in long format. That is, instead of a distinct area in each row with many different census types in the columns, we want to have just one record for each row, with an additional column added for the census code.
 
@@ -44,5 +44,28 @@ census=census |>
   pivot_longer(cols=ends_with("D"),
                names_to="code",    
                values_to="observed")
+```
+
+#### Break Apart Census Code
+In general, we want the smallest piece of data stored in it's own column. Specific to this file, the census code encodes a lot of information which we'd like to break up so that we can more easily filter it in the future. 
+
+One way to do so is to extract the year from which the survey was conducted on, and store the year and census type in their own columns. Note that direct inspection on a csv file giving information on the variables, namely using ``=SORT(UNIQUE(RIGHT(range_of_cells, 4)))`, showed that no data existed prior to 1910-- any two-digit code less than 10 will be from the 2000s.
+
+Since we are in the `tidyverse` already, it makes sense to utilize the `stringr` package to deal with these strings. Within that packages, `str_sub` extracts parts of a string. Since we know the first 7 characters of our string give the survey type, we can directly extract those to form a new column. Since we know the next two characters of our string give the year, we can append the relevant first two digits to make a year. We have already explained that no data prior to 1910 exists, so know that any data with a year value under 10 will be from the 2000s. 
+
+```{r, output=FALSE}
+survey_type=str_sub(census$code, start=1, end=7)
+
+yy=as.numeric(str_sub(census$code, start=8, end=9))
+range(yy)                          #87-96 so all from 90s here, but want to make robust#  
+survey_year=as.numeric(ifelse(yy<=10,                        
+                              paste0("200", yy),
+                              paste0("19", yy)))
+
+census=census |>
+  mutate(survey_type=survey_type, survey_year=survey_year) |>
+  select(area_name, STCOU, survey_type, survey_year, observed)
+
+rm(yy, survey_type, survey_year)                             #no need to keep#
 ```
 
