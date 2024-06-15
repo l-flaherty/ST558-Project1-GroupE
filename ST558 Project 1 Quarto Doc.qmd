@@ -68,4 +68,29 @@ census=census |>
 
 rm(yy, survey_type, survey_year)                             #no need to keep#
 ```
+#### Break Into County Vs. Non-County Data    
+
+In keeping with the above, we'd like to get more granular into our data, specifying the county name when available. To do so, we again rely on the `stringr` package and perform similar operations to the above. 
+
+We first get a sense of the naming patters in our `area_name` column.
+
+```{r}
+unique(census$area_name)[1:10]
+```
+
+Notice that commas exist in areas which have the county specified (like "Autauga, AL"), but there are no commas in areas without county-level data (like "ALABAMA"). We can split our existing `census` tibble into two different tibbles, one with county-level data and one without, by searching for the rows in the tibble which have a comma. The `str_locate()` function in the `stringr` package does the trick, taking in our vector of `area_name`'s, searching for the comma, and returning a matrix giving the starting and ending character of where the comma exists. Since a comma is only one character, we only need one of these columns, and so return just the first column from our matrix. 
+
+```{r}
+a=str_locate(census$area_name, ",")[,1]            #dummy object, no commas in non-county#
+noncounty=census[which(is.na(a)),]                 #keep non-county data together#
+county=census[which(!is.na(a)),]                   #keep county data together#
+rm(a)                                              #no need to keep#
+```
+
+We can double check that this split worked as expected with `unique` from base R.
+
+```{r}
+unique(noncounty$area_name)                        
+unique(county$area_name)[1:50]
+```
 
