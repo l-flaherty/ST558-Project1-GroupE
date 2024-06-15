@@ -65,6 +65,7 @@ unique(noncounty$area_name)                        #double check things work as 
 unique(county$area_name)
 
 class(county)=c("county", class(county))           #not really sure why necessary#
+class(noncounty)=c("state", class(noncounty))      #not really sure why necessary#
 
 county=county |>
   mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)))

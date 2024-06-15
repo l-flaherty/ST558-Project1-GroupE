@@ -94,3 +94,22 @@ unique(noncounty$area_name)
 unique(county$area_name)[1:50]
 ```
 
+After verifying that the split worked as intentioned, we add a class to each tibble, overwriting the previous one.
+
+```{r}
+class(county)=c("county", class(county))           
+class(noncounty)=c("state", class(noncounty))      
+```
+
+#### Classifying States And Divisions
+With the distinct tables now in hand, we want to break up the `area_name` to both the county and state in the case of the `county` data, and to include the division in the case of the `noncounty` data. 
+
+In the `county` data, we are just extracting the last two characters of the string for the state abbreviation, and all parts of the string less the last four for the county (two for the state abbreviation, one for the space, one for the comma). We can do this succinctly with the same `str_sub` function, utilizing the `nchar` function in the process (which logically returns the number of characters a string has).
+
+```{r}
+county=county |>
+  mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)),
+         district=str_sub(area_name, 1, nchar(county$area_name)-4)) |>
+  select(-area_name) |>
+  select(state, district, everything())
+```
