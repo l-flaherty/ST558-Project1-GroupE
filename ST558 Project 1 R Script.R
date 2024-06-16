@@ -27,6 +27,7 @@ library(readxl)
 #e.g. EDU010189D is Public school enrollment Fall 1988-1989#
 
 census=read_csv("EDU01a.csv")       #repo, so same file path#
+census=read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
 str(census)                         #get a sense of the data#
 summary(census)                     #continue to get a sense of the data#
 
@@ -198,7 +199,7 @@ function_for_step_4_5_6=function(mytibble) {
 
 
 ### 2a. Create Wrapper Function###
-myfunction=function(url, default_var_name="") {
+myfunction=function(url, default_var_name="observed") {
   result=function_for_step_1_2(url, default_var_name) |>
     function_for_step_3()|>
     function_for_step_4_5_6()
@@ -209,10 +210,23 @@ myfunction=function(url, default_var_name="") {
 
 
 ###2b. Compare output To Make Sure Works###
-test=myfunction("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv", "observed")
+test=myfunction("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
 all.equal(test[[1]], county)
 all.equal(test[[2]], noncounty)
 rm(test)
 
 
+###2c. Apply function to both datasources###
+file1="https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+file2="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
 
+tibble1=myfunction(file1)
+tibble2=myfunction(file2)
+
+function_combine=function(mytib1, mytib2) {
+  county_data=rbind(mytib1[[1]],mytib2[[1]])
+  non_county_data=rbind(mytib1[[2]], mytib2[[2]])
+  return(list(county_data, non_county_data))
+}
+
+combined_data=function_combine(tibble1,tibble2)

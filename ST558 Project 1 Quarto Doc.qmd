@@ -9,20 +9,19 @@ editor: visual
 
 We are interested in various types of census data, and aim to create functions that return visuals of said data from inputs of either urls or csv files. To start, we look at a single file before generalizing.
 
-The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv>, where We download it locally and then loaded it into our R session. Since we are using R projects, and since we saved the download in the working directory for the project, we don't need to worry about specifying file paths. To start our analysis, we installed any packages we might need with `install.packages`, and call them here with `library()`.
+The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv>. We could either download this locally and save it to our ression, accessing it through the working directory of our projects, or grab the data directly from the url. We opt for the latter. To start our analysis, we installed any packages we might need with `install.packages`, and call them here with `library()`.
 
-```{r, results='hide'}
+```{r, include=FALSE}
 library(tidyverse)            
 library(readxl)
 
-
-census=read_csv("EDU01a.csv")       
+census=read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
 ```
 
 ### Initial Data Exploration
 To get an initial glance at the data, we try normal summary functions. Since the output of these functions is so long, we admit it here. What is clear from the output is that without additional context for what the variables mean, the file contents would be very confusing.
 
-```{r, results='hide'}
+```{r, include=FALSE}
 str(census)
 summary(census)
 ```
@@ -255,7 +254,7 @@ function_for_step_4_5_6=function(mytibble) {
 Finally, we create a single wrapper function that brings all of the above functions together.
 
 ```{r}
-myfunction=function(url, default_var_name="") {
+myfunction=function(url, default_var_name="observed") {
   result=function_for_step_1_2(url, default_var_name) |>
     function_for_step_3()|>
     function_for_step_4_5_6()
@@ -267,8 +266,30 @@ myfunction=function(url, default_var_name="") {
 We check that this performs as expected by comparing it's output to the values we already computed. Using the `all.equal` function, we see that it does!
 
 ```{r}
-test=myfunction("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv", "observed")
+test=myfunction("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
 all.equal(test[[1]], county)
 all.equal(test[[2]], noncounty)
 rm(test)
+```
+
+With this function now in hand, we read in both the old data source and a new one accessible at [https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv](https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv).
+
+```{r}
+file1="https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+file2="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
+
+tibble1=myfunction(file1)
+tibble2=myfunction(file2)
+```
+
+We then write a function to combine like data with like data (i.e. the county data from the first data source is combined with the county data from the second data source). We use the base function `rbind()` to do so, though we could also use the `dplyr` function `bind_rows()`.
+
+```{r}
+function_combine=function(mytib1, mytib2) {
+  county_data=rbind(mytib1[[1]],mytib2[[1]])
+  non_county_data=rbind(mytib1[[2]], mytib2[[2]])
+  return(list(county_data, non_county_data))
+}
+
+combined_data=function_combine(tibble1,tibble2)
 ```
