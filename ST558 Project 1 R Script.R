@@ -50,7 +50,12 @@ range(yy)                                                    #all in 1900s here.
 survey_year=as.numeric(ifelse(yy<=10,                        #... but want to make robust#
                               paste0("200", yy),
                               paste0("19", yy)))
-rm(yy)                                                       #no need to keep#
+
+census=census |>
+  mutate(survey_type=survey_type, survey_year=survey_year) |>
+  select(area_name, STCOU, survey_type, survey_year, observed)
+
+rm(yy, survey_type, survey_year)                             #no need to keep#
 
 
 
@@ -104,17 +109,36 @@ for (i in 1:nrow(noncounty)) {
 noncounty$division=division
 noncounty=noncounty |> select(area_name, division, everything())
 
-rm(i,j,d1,d2,d3,d4,d5,d6,d7,d8,d9,region)      #keep envirnoment clean#
+rm(d1,d2,d3,d4,d5,d6,d7,d8,d9,region,division,i,j)      #keep environment clean#
 
 
-noncounty|>
-  group_by(area_name) |>
-  summarize(across(where(is.numeric), mean))
 
-myvector <- c("Tall", "Short", "Tall", "Short")
-
-# calling the as.factor() function 
-b=as.factor(myvector)
 
 
 #####2. Function Writing#####
+#xxxx double check that column name choices are okayxxxx#
+#xxxxx double check that upon parsing strings, remove old column#
+
+function_for_step_1_2=function(url, default_val="observed") {
+  tmp=read_csv(url) |>
+    select(Area_name, STCOU, ends_with("D")) |>
+    rename(area_name = Area_name) |>   
+    pivot_longer(cols = ends_with("D"),
+                 names_to = "code",
+                 values_to = default_val)
+  return(tmp)
+}
+
+function_for_step_3=function(mytibble) {
+  survey_type=str_sub(mytibble$code, start=1, end=7)
+  yy=as.numeric(str_sub(mytibble$code, start=8, end=9))
+  survey_year=as.numeric(ifelse(yy<=10,                        
+                                paste0("200", yy),
+                                paste0("19", yy)))
+  tmp=mytibble |>
+    mutate(survey_type=survey_type, survey_year=survey_year) |>
+    select(area_name, STCOU, survey_type, survey_year, observed)
+  return(tmp)
+}
+
+

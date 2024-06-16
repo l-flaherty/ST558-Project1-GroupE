@@ -147,7 +147,43 @@ for (i in 1:nrow(noncounty)) {
 noncounty$division=division
 noncounty=noncounty |> select(area_name, division, everything())
 
-rm(i,j,d1,d2,d3,d4,d5,d6,d7,d8,d9,region)      #keep environment clean#
+rm(d1,d2,d3,d4,d5,d6,d7,d8,d9,region,division,i,j)      #keep environment clean#
 ```
 
+
+## Function Writing
+
+We want to create functions that can do all the above with just the input of a file path or url. 
+
+In the first step to the data processing section above, we looked at selecting, renaming, and reshaping our data. We create a function that performs these steps below, essentially just copying our steps into a user-defined function (udf) called  `function_for_step_1_2`. Note that the input to the function must be a string (i.e. the url must be in quotes).
+
+
+```{r}
+function_for_step_1_2=function(url, default_val="observed") {
+  tmp=read_csv(url) |>
+    select(Area_name, STCOU, ends_with("D")) |>
+    rename(area_name = Area_name) |>   
+    pivot_longer(cols = ends_with("D"),
+                 names_to = "code",
+                 values_to = default_val)
+  return(tmp)
+}
+```
+
+In the third step to the data processing section above, we looked at parsing strings, specifically breaking up the census code into the survey type and survey year. We again put the process we followed into a single function `function_for_step_3` that takes as input the output from `function_for_step_1_2`. Note that we must have renamed the census codes to `code` upon reshaping the data in `function_for_step_1_2` for this to work. 
+
+
+```{r}
+function_for_step_3=function(mytibble) {
+  survey_type=str_sub(mytibble$code, start=1, end=7)
+  yy=as.numeric(str_sub(mytibble$code, start=8, end=9))
+  survey_year=as.numeric(ifelse(yy<=10,                        
+                                paste0("200", yy),
+                                paste0("19", yy)))
+  tmp=mytibble |>
+    mutate(survey_type=survey_type, survey_year=survey_year) |>
+    select(area_name, STCOU, survey_type, survey_year, observed)
+  return(tmp)
+}
+```
 
