@@ -230,3 +230,26 @@ function_combine=function(mytib1, mytib2) {
 }
 
 combined_data=function_combine(tibble1,tibble2)
+
+
+
+
+
+#####3. Summarizing #####
+plot.state=function(mytibble, default_var_name="observed") {
+  tmp=mytibble |>
+    filter(division != "ERROR") |>
+    group_by(division, survey_year) |>
+    summarize(mean_observed=mean(mean(get(default_var_name))))
+  
+  ggplot(tmp, aes(x=survey_year, y=mean_observed, color=division)) +
+    geom_line() +
+    labs(x="Year", 
+         y="Mean Enrollemnt Value", 
+         color="Division", 
+         title = "Mean Enrollment Value by Year and Division") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5))
+}
+
+plot.state(combined_data[[2]])

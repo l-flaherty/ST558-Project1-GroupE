@@ -293,3 +293,34 @@ function_combine=function(mytib1, mytib2) {
 
 combined_data=function_combine(tibble1,tibble2)
 ```
+
+
+## Summarizing With Visuals
+We now turn our attention to summarizing our results. We'd like to create functions that utilize the `ggplot2()` package in the `tidyverse` to return nice visuals of our data.
+
+### Mean Enrollemnt By Division
+Our first function will summarize non-county data, returning the mean enrollment value by year for each division that the respective state is in. We only care about divisions, so exclude any values in our data that  aren't part of one by using `filter`. We want to plot our data for each division by year, so we use `group_by()` to do so. Finally, we want to find the mean value of each division each year, which we can grab with the `summarize()` function. We then plot this object using `ggplot()`, making small adjustments to make the output more visually appealing (such as centering the title with `theme(plot.title = element_text(hjust = 0.5))` and removing `ggplots()` ugly default with ` theme_bw()`). 
+
+```{r}
+plot.state=function(mytibble, default_var_name="observed") {
+  tmp=mytibble |>
+    filter(division != "ERROR") |>
+    group_by(division, survey_year) |>
+    summarize(mean_observed=mean(mean(get(default_var_name))))
+  
+  ggplot(tmp, aes(x=survey_year, y=mean_observed, color=division)) +
+    geom_line() +
+    labs(x="Year", 
+         y="Mean Enrollemnt Value", 
+         color="Division", 
+         title = "Mean Enrollment Value by Year and Division") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5))
+}
+```
+
+To make sure the function works as expected, we pass in the output from our `combined_data()`.
+
+```{r}
+plot.state(combined_data[[2]])
+```
