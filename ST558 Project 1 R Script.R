@@ -119,13 +119,13 @@ rm(d1,d2,d3,d4,d5,d6,d7,d8,d9,region,division,i,j)      #keep environment clean#
 #xxxx double check that column name choices are okayxxxx#
 #xxxxx double check that upon parsing strings, remove old column#
 
-function_for_step_1_2=function(url, default_val="observed") {
+function_for_step_1_2=function(url, default_var_name="observed") {
   tmp=read_csv(url) |>
     select(Area_name, STCOU, ends_with("D")) |>
     rename(area_name = Area_name) |>   
     pivot_longer(cols = ends_with("D"),
                  names_to = "code",
-                 values_to = default_val)
+                 values_to = default_var_name)
   return(tmp)
 }
 
@@ -181,7 +181,7 @@ function_for_step_6=function(mytibble) {
    return(tmp) 
 }
 
-function_for_steps_4_5_6=function(mytibble) {
+function_for_step_4_5_6=function(mytibble) {
   a=str_locate(mytibble$area_name, ",")[,1]            
   noncounty=mytibble[which(is.na(a)),]                 
   county=mytibble[which(!is.na(a)),]
@@ -196,6 +196,23 @@ function_for_steps_4_5_6=function(mytibble) {
 }
 
 
+
+### 2a. Create Wrapper Function###
+myfunction=function(url, default_var_name="") {
+  result=function_for_step_1_2(url, default_var_name) |>
+    function_for_step_3()|>
+    function_for_step_4_5_6()
+  
+  return(result)
+}
+
+
+
+###2b. Compare output To Make Sure Works###
+test=myfunction("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv", "observed")
+all.equal(test[[1]], county)
+all.equal(test[[2]], noncounty)
+rm(test)
 
 
 
