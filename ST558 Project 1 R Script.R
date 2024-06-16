@@ -141,4 +141,41 @@ function_for_step_3=function(mytibble) {
   return(tmp)
 }
 
+function_for_step_5=function(mytibble) {
+  tmp=mytibble |> 
+    mutate(state=str_sub(area_name, nchar(mytibble$area_name) - 1, nchar(mytibble$area_name)),
+           district=str_sub(area_name, 1, nchar(mytibble$area_name)-4)) |>
+    select(-area_name) |>
+    select(state, district, everything())
+  return(tmp)
+}
+
+function_for_step_6=function(mytibble) {
+  d1=c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT")
+  d2=c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA")
+  d3=c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN")
+  d4=c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA")
+  d5=c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA")
+  d6=c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE")
+  d7=c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS")
+  d8=c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING")
+  d9=c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON")
+  
+  region=list(d1,d2,d3,d4,d5,d6,d7,d8,d9)
+  division=vector()
+  
+  for (i in 1:nrow(mytibble)) {
+    j=1
+    
+    while(j<=length(region) && !(mytibble$area_name[i] %in% region[[j]])) {
+      j=j+1
+    }
+    
+    division[i]=ifelse(j<=length(region), j, "ERROR")
+  }
+  
+  tmp=mytibble |>
+    select(area_name, division, everything())
+   return(tmp) 
+}
 
