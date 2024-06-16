@@ -163,7 +163,7 @@ function_for_step_6=function(mytibble) {
   
   region=list(d1,d2,d3,d4,d5,d6,d7,d8,d9)
   division=vector()
-  
+
   for (i in 1:nrow(mytibble)) {
     j=1
     
@@ -174,8 +174,28 @@ function_for_step_6=function(mytibble) {
     division[i]=ifelse(j<=length(region), j, "ERROR")
   }
   
+  mytibble$division=division
+  
   tmp=mytibble |>
     select(area_name, division, everything())
    return(tmp) 
 }
+
+function_for_steps_4_5_6=function(mytibble) {
+  a=str_locate(mytibble$area_name, ",")[,1]            
+  noncounty=mytibble[which(is.na(a)),]                 
+  county=mytibble[which(!is.na(a)),]
+  
+  class(county)=c("county", class(county))           
+  class(noncounty)=c("state", class(noncounty))      
+  
+  county=function_for_step_5(county)
+  noncounty=function_for_step_6(noncounty)
+  
+  return(list(county,noncounty))
+}
+
+
+
+
 
