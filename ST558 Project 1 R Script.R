@@ -68,7 +68,10 @@ class(county)=c("county", class(county))           #not really sure why necessar
 class(noncounty)=c("state", class(noncounty))      #not really sure why necessary#
 
 county=county |>
-  mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)))
+  mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)),
+         district=str_sub(area_name, 1, nchar(county$area_name)-4)) |>
+  select(-area_name) |>
+  select(state, district, everything())
 
 
 
@@ -85,20 +88,23 @@ d7=c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS")
 d8=c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING")
 d9=c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON")
 
-districts=list(d1,d2,d3,d4,d5,d6,d7,d8,d9)
+region=list(d1,d2,d3,d4,d5,d6,d7,d8,d9)
 division=vector()
 
 for (i in 1:nrow(noncounty)) {
   j=1
   
-  while(j<=length(districts) && !(noncounty$area_name[i] %in% districts[[j]])) {
+  while(j<=length(region) && !(noncounty$area_name[i] %in% region[[j]])) {
     j=j+1
   }
   
-  division[i]=ifelse(j<=length(districts), j, "ERROR")
+  division[i]=ifelse(j<=length(region), j, "ERROR")
 }
 
 noncounty$division=division
+noncounty=noncounty |> select(area_name, division, everything())
+
+rm(i,j,d1,d2,d3,d4,d5,d6,d7,d8,d9,region)      #keep envirnoment clean#
 
 
 noncounty|>
