@@ -95,13 +95,13 @@ non_county_data
 -   Write one function that does steps 1 & 2 above. Give an optional argument that allows the user to specify the name of the column representing the value (enrollment for these data sets).
 
 ```{r}
-function_for_step_1_2 <- function(url, default_var_name = "value") {
+function_for_step_1_2 <- function(url, what_var_name = "value") {
   tmp <- read_csv(url) |>
     select(Area_name, STCOU, ends_with("D")) |>
     rename("area_name" = "Area_name") |>   
     pivot_longer(cols = is.numeric,
                  names_to = "enrollment",
-                 values_to = default_var_name)
+                 values_to = what_var_name)
   return(tmp)
 }
 ```
@@ -166,8 +166,8 @@ function_for_steps4_5_6 <- function(tmp) {
 -   Creating a wrapper function that takes in the URL of a .csv file in this format and the optional argument for the variable name, calls the functions you wrote above, and then returns the two tibbles.
 
 ```{r}
-my_wrapper <- function(url, default_var_name = "value") {
-  result <- function_for_step_1_2(url, default_var_name) |>
+my_wrapper <- function(url, what_var_name = "value") {
+  result <- function_for_step_1_2(url, what_var_name) |>
     function_for_step_3() |>
     function_for_steps4_5_6 ()
   return(result)
@@ -211,11 +211,11 @@ data_combined
 
 ```{r}
 
-plot.state <- function(combined_state_data, default_var_name = value) {
+plot.state <- function(combined_state_data, what_var_name = value) {
   combined_state_data <- combined_state_data |>
     filter(division != "ERROR") |>
     group_by(division, year) |>
-    summarize(mean_value = mean({{default_var_name}}))
+    summarize(mean_value = mean({{what_var_name}}))
 
   ggplot(combined_state_data, aes(x = year, y = mean_value, color = division)) +
     geom_line() +
@@ -225,7 +225,7 @@ plot.state <- function(combined_state_data, default_var_name = value) {
          title = "Mean Enrollment Value by Year and Division")
 }
 
-plot.state(combined_state_data = data_combined[[2]], default_var_name = value)
+plot.state(combined_state_data = data_combined[[2]], what_var_name = value)
 ```
 
 ### for the county level tibble
@@ -238,25 +238,25 @@ plot.state(combined_state_data = data_combined[[2]], default_var_name = value)
 
 ```{r}
 
-plot.county <- function(combined_county_data, default_state = "NC", default_var_name = value, top_or_bottom = "top", default_obs = 5){
+plot.county <- function(combined_county_data, what_var_name = value, which_state = "NC",  top_or_bottom = "top", how_many_obs = 5){
   
   if (top_or_bottom == "top") {
     area_name_for_plot <- combined_county_data |>
-      filter(state == default_state) |>
+      filter(state == which_state) |>
       group_by(area_name) |>
-      summarize(mean_value = mean({{default_var_name}})) |>
+      summarize(mean_value = mean({{what_var_name}})) |>
       arrange(desc(mean_value)) |>
-      slice(1:default_obs) |>
+      slice(1:how_many_obs) |>
       pull(area_name)
     
     area_name_for_plot
   } else if (top_or_bottom == "bottom") {
     area_name_for_plot <- combined_county_data |>
-      filter(state == default_state) |>
+      filter(state == which_state) |>
       group_by(area_name) |>
-      summarize(mean_value = mean({{default_var_name}})) |>
+      summarize(mean_value = mean({{what_var_name}})) |>
       arrange(mean_value) |>
-      slice(1:default_obs) |>
+      slice(1:how_many_obs) |>
       pull(area_name)
     
     area_name_for_plot
@@ -265,14 +265,125 @@ plot.county <- function(combined_county_data, default_state = "NC", default_var_
   plot_state <- data_combined[[1]] |>
     filter(area_name %in% area_name_for_plot)
   
-  ggplot(plot_state, aes(x = year, y = value, color = area_name)) +
+  ggplot(plot_state, aes(x = year, y = {{what_var_name}}, color = area_name)) +
     geom_line() +
     labs(x = "Year",
          y = "Enrollment Value",
-         color = "Area_name",
+         color = "Counties",
          title = "Enrollment Value by Year in Counties Referred")
 }
 
-plot.county(combined_county_data = data_combined[[1]], default_state = "CA", default_var_name = value, top_or_bottom = "bottom", default_obs = 10)
+plot.county(combined_county_data = data_combined[[1]], which_state = "CA", what_var_name = value, top_or_bottom = "bottom", how_many_obs = 10)
 
 ```
+
+## Put it together
+
+###Read in two datasets
+
+- Run your data processing function on the two enrollment URLs given previously, specifying an appropriate name for the enrollment data column.
+
+```{r}
+# Pick a different name "enroll_value" instead of the default value "value" for the name of the enrollment data column
+
+edu01a_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv", what_var_name = "enroll_value")
+edu01a_data_from_wrapper
+
+edu01b_data_from_wrapper <-
+my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv", what_var_name = "enroll_value")
+edu01b_data_from_wrapper
+
+```
+
+- Run your data combining function to put these into one object (with two data frames)
+
+```{r}
+
+data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
+data_combined
+
+```
+
+- Use the plot function on the state data frame
+
+```{r}
+#Use the previously picked different name "enroll_value" to refer to the name of the enrollment data column here
+plot.state(combined_state_data = data_combined[[2]], what_var_name = enroll_value)
+```
+
+- Use the plot function on the county data frame
+
+```{r}
+#Specifying the state to be “NC”, the group being the top, the number looked at being 20
+plot.county(combined_county_data = data_combined[[1]], what_var_name = enroll_value, which_state = "NC", top_or_bottom = "top", how_many_obs = 20)
+
+#Specifying the state to be “SC”, the group being the bottom, the number looked at being 7
+plot.county(combined_county_data = data_combined[[1]], what_var_name = enroll_value, which_state = "SC", top_or_bottom = "bottom", how_many_obs = 7)
+
+#Without specifying anything (defaults used)
+plot.county(combined_county_data = data_combined[[1]], what_var_name = enroll_value)
+
+#Specifying the state to be “PA”, the group being the top, the number looked at being 8
+plot.county(combined_county_data = data_combined[[1]], what_var_name = enroll_value, which_state = "PA", top_or_bottom = "top", how_many_obs = 8)
+```
+
+###Read in four datasets
+
+- Run your data processing function on the four data sets with given URLs
+
+```{r}
+#Use the default what_var_name ("value") without specifying here
+pst01a_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/PST01a.csv")
+pst01a_data_from_wrapper
+
+pst01b_data_from_wrapper <-
+my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/PST01b.csv")
+pst01b_data_from_wrapper
+
+pst01c_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/PST01c.csv")
+pst01c_data_from_wrapper
+
+pst01d_data_from_wrapper <-
+my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/PST01d.csv")
+pst01d_data_from_wrapper
+```
+
+- Run your data combining function (probably three times) to put these into one object (with two data frames)
+
+```{r}
+#Combine datasets from pst01a_data_from_wrapper and pst01b_data_from_wrapper
+data_combined_a_b <- combining_data(pst01a_data_from_wrapper, pst01b_data_from_wrapper)
+data_combined_a_b
+
+#Combine datasets from pst01c_data_from_wrapper and pst01d_data_from_wrapper
+data_combined_c_d <- combining_data(pst01c_data_from_wrapper, pst01d_data_from_wrapper)
+data_combined_c_d
+
+#Combine all four datasets together
+data_combined <- combining_data(data_combined_a_b, data_combined_c_d)
+data_combined
+```
+
+- Use the plot function on the state data frame
+
+```{r}
+#Use the default what_var_name ("value") without specifying here
+plot.state(combined_state_data = data_combined[[2]])
+```
+
+- Use the plot function on the county data frame
+
+```{r}
+#Specifying the state to be “CA”, the group being the top, the number looked at being 15 with the default what_var_name ("value") 
+plot.county(combined_county_data = data_combined[[1]], which_state = "CA", top_or_bottom = "top", how_many_obs = 15)
+
+#Specifying the state to be “TX”, the group being the top, the number looked at being 4 with the default what_var_name ("value") 
+plot.county(combined_county_data = data_combined[[1]], which_state = "TX", top_or_bottom = "top", how_many_obs = 4)
+
+#Without specifying anything (defaults used)
+plot.county(combined_county_data = data_combined[[1]])
+
+#Specifying the state to be “NY”, the group being the top, the number looked at being 10 with the default what_var_name ("value") 
+plot.county(combined_county_data = data_combined[[1]], which_state = "NY", top_or_bottom = "top", how_many_obs = 10)
+```
+
