@@ -200,8 +200,6 @@ combining_data <- function(tmp_1, tmp_2) {
 data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
 data_combined
 
-data_combined[[1]]
-data_combined[[2]]
 ```
 
 ## Writing a Generic Function for Summarizing.
