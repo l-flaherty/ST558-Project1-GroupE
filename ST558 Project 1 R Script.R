@@ -26,8 +26,8 @@ library(readxl)
 #e.g. EDU010180D is Public school enrollment Fall 1979-1980#
 #e.g. EDU010189D is Public school enrollment Fall 1988-1989#
 
-census=read_csv("EDU01a.csv")       #repo, so same file path#
-census=read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
+url1="https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+census=read_csv(url1)
 str(census)                         #get a sense of the data#
 summary(census)                     #continue to get a sense of the data#
 
@@ -118,7 +118,8 @@ rm(d1,d2,d3,d4,d5,d6,d7,d8,d9,region,division,i,j)      #keep environment clean#
 
 #####2. Function Writing#####
 #xxxx double check that column name choices are okayxxxx#
-#xxxxx double check that upon parsing strings, remove old column#
+#xxxxx double check that upon parsing strings, remove old column okay#
+#xxxx look at defaults and naming#
 
 function_for_step_1_2=function(url, default_var_name="observed") {
   tmp=read_csv(url) |>
@@ -199,7 +200,7 @@ function_for_step_4_5_6=function(mytibble) {
 
 
 ### 2a. Create Wrapper Function###
-myfunction=function(url, default_var_name="observed") {
+function_wrap=function(url, default_var_name="observed") {
   result=function_for_step_1_2(url, default_var_name) |>
     function_for_step_3()|>
     function_for_step_4_5_6()
@@ -210,18 +211,17 @@ myfunction=function(url, default_var_name="observed") {
 
 
 ###2b. Compare output To Make Sure Works###
-test=myfunction("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
+test=function_wrap("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
 all.equal(test[[1]], county)
 all.equal(test[[2]], noncounty)
 rm(test)
 
 
 ###2c. Apply function to both datasources###
-file1="https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
-file2="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
+url2="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
 
-tibble1=myfunction(file1)
-tibble2=myfunction(file2)
+tibble1=function_wrap(url1)
+tibble2=function_wrap(url2)
 
 function_combine=function(mytib1, mytib2) {
   county_data=rbind(mytib1[[1]],mytib2[[1]])
@@ -236,6 +236,7 @@ combined_data=function_combine(tibble1,tibble2)
 
 
 #####3. Summarizing #####
+###3a. Non-county plotting function###
 plot.state=function(mytibble, default_var_name="observed") {
   tmp=mytibble |>
     filter(division != "ERROR") |>
@@ -253,3 +254,63 @@ plot.state=function(mytibble, default_var_name="observed") {
 }
 
 plot.state(combined_data[[2]])
+
+
+###3b. County plotting###
+#x ask about sorting and outputX#
+"plot.county=function(mytibble,
+                     default_state='NC', 
+                     default_filter='top', 
+                     default_count=5,
+                     default_var_name='observed') {
+  
+  area_name=paste0(mytibble$district, ", ", mytibble$state)
+  mytibble$area_name=area_name
+  
+  tmp=mytibble |>
+    filter(state=default_state) |>
+    group_by(area_name) |>
+    arrange(ifelse(default_filter=='top',
+                   default_var_name,
+                   desc(default_var_name))) |>
+    slice(1:default_count)
+}"
+
+
+
+###3c. Using Our Functions###
+#Other data sources#
+url3="https://www4.stat.ncsu.edu/~online/datasets/PST01a.csv"
+url4="https://www4.stat.ncsu.edu/~online/datasets/PST01b.csv"
+url5="https://www4.stat.ncsu.edu/~online/datasets/PST01c.csv"
+url6="https://www4.stat.ncsu.edu/~online/datasets/PST01d.csv"
+
+#Data Processing For Each Of Data Sources#
+url_list=list(url1, url2,url3,url4,url5,url6)
+
+for (i in 1:6) {
+  myvar=paste0("data",i)
+  assign(myvar, function_wrap(url_list[[i]]))
+}
+
+#Combining Data Sources#
+first_urls=function_combine(data1,data2)
+second_urls=function_combine(data3,
+  function_combine(data4,
+    function_combine(data5, data6)))
+
+#Running Functions On Combined Data Sources#
+plot.state(first_urls[[2]])
+
+"plot.county(first_urls[[1]],NC, top, 20, observed)
+plot.county(first_urls[[1]],SC, bottom, 7, observed)
+plot.county(first_urls[[1]])
+plot.county(first_urls[[1]], PA, top, 8, observed)"
+
+plot.state(second_urls[[2]])
+
+"plot.county(second_urls[[1]],CA, top, 15, observed)
+plot.county(second_urls[[1]],TX, bottom, 4, observed)
+plot.county(second_urls[[1]])
+plot.county(second_urls[[1]], NY, top, 10, observed)"
+

@@ -15,7 +15,8 @@ The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU0
 library(tidyverse)            
 library(readxl)
 
-census=read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
+url1="https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+census=read_csv(url1)
 ```
 
 ### Initial Data Exploration
@@ -254,7 +255,7 @@ function_for_step_4_5_6=function(mytibble) {
 Finally, we create a single wrapper function that brings all of the above functions together.
 
 ```{r}
-myfunction=function(url, default_var_name="observed") {
+function_wrap=function(url, default_var_name="observed") {
   result=function_for_step_1_2(url, default_var_name) |>
     function_for_step_3()|>
     function_for_step_4_5_6()
@@ -266,7 +267,7 @@ myfunction=function(url, default_var_name="observed") {
 We check that this performs as expected by comparing it's output to the values we already computed. Using the `all.equal` function, we see that it does!
 
 ```{r}
-test=myfunction("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
+test=function_wrap(url1)
 all.equal(test[[1]], county)
 all.equal(test[[2]], noncounty)
 rm(test)
@@ -275,11 +276,10 @@ rm(test)
 With this function now in hand, we read in both the old data source and a new one accessible at [https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv](https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv).
 
 ```{r}
-file1="https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
-file2="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
+url2="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
 
-tibble1=myfunction(file1)
-tibble2=myfunction(file2)
+tibble1=function_wrap(url1)
+tibble2=function_wrap(url2)
 ```
 
 We then write a function to combine like data with like data (i.e. the county data from the first data source is combined with the county data from the second data source). We use the base function `rbind()` to do so, though we could also use the `dplyr` function `bind_rows()`.
