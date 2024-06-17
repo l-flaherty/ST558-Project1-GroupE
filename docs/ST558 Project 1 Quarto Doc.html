@@ -589,31 +589,101 @@ dbl (20): EDU010197F, EDU010197D, EDU010198F, EDU010198D, EDU010199F, EDU010...
 <span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>data_combined <span class="ot">&lt;-</span> <span class="fu">combining_data</span>(edu01a_data_from_wrapper, edu01b_data_from_wrapper)</span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>data_combined[[<span class="dv">2</span>]] <span class="sc">|&gt;</span> <span class="fu">View</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>data_combined</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+# A tibble: 62,900 × 7
+   area_name   STCOU enrollment value measurement  year state
+   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;
+ 1 Autauga, AL 01001 EDU010187D  6829 EDU0101      1987 AL   
+ 2 Autauga, AL 01001 EDU010188D  6900 EDU0101      1988 AL   
+ 3 Autauga, AL 01001 EDU010189D  6920 EDU0101      1989 AL   
+ 4 Autauga, AL 01001 EDU010190D  6847 EDU0101      1990 AL   
+ 5 Autauga, AL 01001 EDU010191D  7008 EDU0101      1991 AL   
+ 6 Autauga, AL 01001 EDU010192D  7137 EDU0101      1992 AL   
+ 7 Autauga, AL 01001 EDU010193D  7152 EDU0101      1993 AL   
+ 8 Autauga, AL 01001 EDU010194D  7381 EDU0101      1994 AL   
+ 9 Autauga, AL 01001 EDU010195D  7568 EDU0101      1995 AL   
+10 Autauga, AL 01001 EDU010196D  7834 EDU0101      1996 AL   
+# ℹ 62,890 more rows
+
+[[2]]
+# A tibble: 1,060 × 7
+   area_name     STCOU enrollment    value measurement  year division
+   &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;   
+ 1 UNITED STATES 00000 EDU010187D 40024299 EDU0101      1987 ERROR   
+ 2 UNITED STATES 00000 EDU010188D 39967624 EDU0101      1988 ERROR   
+ 3 UNITED STATES 00000 EDU010189D 40317775 EDU0101      1989 ERROR   
+ 4 UNITED STATES 00000 EDU010190D 40737600 EDU0101      1990 ERROR   
+ 5 UNITED STATES 00000 EDU010191D 41385442 EDU0101      1991 ERROR   
+ 6 UNITED STATES 00000 EDU010192D 42088151 EDU0101      1992 ERROR   
+ 7 UNITED STATES 00000 EDU010193D 42724710 EDU0101      1993 ERROR   
+ 8 UNITED STATES 00000 EDU010194D 43369917 EDU0101      1994 ERROR   
+ 9 UNITED STATES 00000 EDU010195D 43993459 EDU0101      1995 ERROR   
+10 UNITED STATES 00000 EDU010196D 44715737 EDU0101      1996 ERROR   
+# ℹ 1,050 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>data_combined[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 62,900 × 7
+   area_name   STCOU enrollment value measurement  year state
+   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;
+ 1 Autauga, AL 01001 EDU010187D  6829 EDU0101      1987 AL   
+ 2 Autauga, AL 01001 EDU010188D  6900 EDU0101      1988 AL   
+ 3 Autauga, AL 01001 EDU010189D  6920 EDU0101      1989 AL   
+ 4 Autauga, AL 01001 EDU010190D  6847 EDU0101      1990 AL   
+ 5 Autauga, AL 01001 EDU010191D  7008 EDU0101      1991 AL   
+ 6 Autauga, AL 01001 EDU010192D  7137 EDU0101      1992 AL   
+ 7 Autauga, AL 01001 EDU010193D  7152 EDU0101      1993 AL   
+ 8 Autauga, AL 01001 EDU010194D  7381 EDU0101      1994 AL   
+ 9 Autauga, AL 01001 EDU010195D  7568 EDU0101      1995 AL   
+10 Autauga, AL 01001 EDU010196D  7834 EDU0101      1996 AL   
+# ℹ 62,890 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>data_combined[[<span class="dv">2</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1,060 × 7
+   area_name     STCOU enrollment    value measurement  year division
+   &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;   
+ 1 UNITED STATES 00000 EDU010187D 40024299 EDU0101      1987 ERROR   
+ 2 UNITED STATES 00000 EDU010188D 39967624 EDU0101      1988 ERROR   
+ 3 UNITED STATES 00000 EDU010189D 40317775 EDU0101      1989 ERROR   
+ 4 UNITED STATES 00000 EDU010190D 40737600 EDU0101      1990 ERROR   
+ 5 UNITED STATES 00000 EDU010191D 41385442 EDU0101      1991 ERROR   
+ 6 UNITED STATES 00000 EDU010192D 42088151 EDU0101      1992 ERROR   
+ 7 UNITED STATES 00000 EDU010193D 42724710 EDU0101      1993 ERROR   
+ 8 UNITED STATES 00000 EDU010194D 43369917 EDU0101      1994 ERROR   
+ 9 UNITED STATES 00000 EDU010195D 43993459 EDU0101      1995 ERROR   
+10 UNITED STATES 00000 EDU010196D 44715737 EDU0101      1996 ERROR   
+# ℹ 1,050 more rows</code></pre>
+</div>
 </div>
 </section>
 </section>
 <section id="writing-a-generic-function-for-summarizing." class="level2">
 <h2 class="anchored" data-anchor-id="writing-a-generic-function-for-summarizing.">Writing a Generic Function for Summarizing.</h2>
+<section id="for-the-non-county-level-tibble" class="level3">
+<h3 class="anchored" data-anchor-id="for-the-non-county-level-tibble">for the non-county level tibble</h3>
 <ul>
 <li>Write a function that plots the mean value of the statistic (enrollment for this data set) across the years for each Division. That is, on the x-axis we want the numeric year value, on the y-axis we want the mean of the statistic for each Division and numeric year. Remove observations at the ERROR setting of Division.</li>
+<li>plot the data with year as x-axis and mean enrollment value as y-axis for different divisions</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>plot.state <span class="ot">&lt;-</span> <span class="cf">function</span>(df, <span class="at">default_var_name =</span> value) {</span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  df <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(division <span class="sc">!=</span> <span class="st">"ERROR"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(division, year) <span class="sc">|&gt;</span></span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">mean_value =</span> <span class="fu">mean</span>({{default_var_name}}))</span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> mean_value, <span class="at">color =</span> division)) <span class="sc">+</span> </span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Year"</span>, </span>
-<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">"Mean Enrollment Value"</span>, </span>
-<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> <span class="st">"Division"</span>, </span>
-<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Mean Enrollment Value by Year and Division"</span>)</span>
-<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.state</span>(data_combined[[<span class="dv">2</span>]], <span class="at">default_var_name =</span> value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>plot.state <span class="ot">&lt;-</span> <span class="cf">function</span>(combined_state_data, <span class="at">default_var_name =</span> value) {</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  combined_state_data <span class="ot">&lt;-</span> combined_state_data <span class="sc">|&gt;</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(division <span class="sc">!=</span> <span class="st">"ERROR"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(division, year) <span class="sc">|&gt;</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">mean_value =</span> <span class="fu">mean</span>({{default_var_name}}))</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(combined_state_data, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> mean_value, <span class="at">color =</span> division)) <span class="sc">+</span></span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Year"</span>,</span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">"Mean Enrollment Value"</span>,</span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> <span class="st">"Division"</span>,</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Mean Enrollment Value by Year and Division"</span>)</span>
+<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.state</span>(<span class="at">combined_state_data =</span> data_combined[[<span class="dv">2</span>]], <span class="at">default_var_name =</span> value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has grouped output by 'division'. You can override using the
 `.groups` argument.</code></pre>
@@ -626,8 +696,64 @@ dbl (20): EDU010197F, EDU010197D, EDU010198F, EDU010198D, EDU010199F, EDU010...
 </div>
 </div>
 </div>
+</section>
+<section id="for-the-county-level-tibble" class="level3">
+<h3 class="anchored" data-anchor-id="for-the-county-level-tibble">for the county level tibble</h3>
+<ul>
+<li>filter the data to only include data from the state specified</li>
+<li>find the overall mean of the statistic (use get(var_name) here as well) for each Area_name and sort those values from largest to smallest if ‘top’ is specified or smallest to largest if ‘bottom’ is specified</li>
+<li>obtain the top or bottom x number of Area_names from the previous step where x is given by the user or the default</li>
+<li>filter the data for this state to only include the Area_name’s from the previous part</li>
+<li>plot the data with year as x-axis and original enrollment value as y-axis for counties refereed in query</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>plot.county <span class="ot">&lt;-</span> <span class="cf">function</span>(combined_county_data, <span class="at">default_state =</span> <span class="st">"NC"</span>, <span class="at">default_var_name =</span> value, <span class="at">top_or_bottom =</span> <span class="st">"top"</span>, <span class="at">default_obs =</span> <span class="dv">5</span>){</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (top_or_bottom <span class="sc">==</span> <span class="st">"top"</span>) {</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>    area_name_for_plot <span class="ot">&lt;-</span> combined_county_data <span class="sc">|&gt;</span></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(state <span class="sc">==</span> default_state) <span class="sc">|&gt;</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(area_name) <span class="sc">|&gt;</span></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarize</span>(<span class="at">mean_value =</span> <span class="fu">mean</span>({{default_var_name}})) <span class="sc">|&gt;</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_value)) <span class="sc">|&gt;</span></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span>default_obs) <span class="sc">|&gt;</span></span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pull</span>(area_name)</span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>    area_name_for_plot</span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (top_or_bottom <span class="sc">==</span> <span class="st">"bottom"</span>) {</span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>    area_name_for_plot <span class="ot">&lt;-</span> combined_county_data <span class="sc">|&gt;</span></span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(state <span class="sc">==</span> default_state) <span class="sc">|&gt;</span></span>
+<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(area_name) <span class="sc">|&gt;</span></span>
+<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarize</span>(<span class="at">mean_value =</span> <span class="fu">mean</span>({{default_var_name}})) <span class="sc">|&gt;</span></span>
+<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">arrange</span>(mean_value) <span class="sc">|&gt;</span></span>
+<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span>default_obs) <span class="sc">|&gt;</span></span>
+<span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pull</span>(area_name)</span>
+<span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a>    area_name_for_plot</span>
+<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a>  } </span>
+<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb51-25"><a href="#cb51-25" aria-hidden="true" tabindex="-1"></a>  plot_state <span class="ot">&lt;-</span> data_combined[[<span class="dv">1</span>]] <span class="sc">|&gt;</span></span>
+<span id="cb51-26"><a href="#cb51-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(area_name <span class="sc">%in%</span> area_name_for_plot)</span>
+<span id="cb51-27"><a href="#cb51-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb51-28"><a href="#cb51-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(plot_state, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> value, <span class="at">color =</span> area_name)) <span class="sc">+</span></span>
+<span id="cb51-29"><a href="#cb51-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb51-30"><a href="#cb51-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Year"</span>,</span>
+<span id="cb51-31"><a href="#cb51-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">"Enrollment Value"</span>,</span>
+<span id="cb51-32"><a href="#cb51-32" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> <span class="st">"Area_name"</span>,</span>
+<span id="cb51-33"><a href="#cb51-33" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Enrollment Value by Year in Counties Referred"</span>)</span>
+<span id="cb51-34"><a href="#cb51-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb51-35"><a href="#cb51-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-36"><a href="#cb51-36" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.county</span>(<span class="at">combined_county_data =</span> data_combined[[<span class="dv">1</span>]], <span class="at">default_state =</span> <span class="st">"CA"</span>, <span class="at">default_var_name =</span> value, <span class="at">top_or_bottom =</span> <span class="st">"bottom"</span>, <span class="at">default_obs =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ST558-Project-1-Quarto-Doc_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
+</section>
 </section>
 </section>
 

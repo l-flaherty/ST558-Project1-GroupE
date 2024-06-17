@@ -198,29 +198,83 @@ combining_data <- function(tmp_1, tmp_2) {
 }
 
 data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
-data_combined[[2]] |> View()
+data_combined
+
+data_combined[[1]]
+data_combined[[2]]
 ```
 
 ## Writing a Generic Function for Summarizing.
 
+### for the non-county level tibble
+
 - Write a function that plots the mean value of the statistic (enrollment for this data set) across the years for each Division. That is, on the x-axis we want the numeric year value, on the y-axis we want the mean of the statistic for each Division and numeric year. Remove observations at the ERROR setting of Division.
+- plot the data with year as x-axis and mean enrollment value as y-axis for different divisions
 
 ```{r}
 
-plot.state <- function(df, default_var_name = value) {
-  df <- df |>
+plot.state <- function(combined_state_data, default_var_name = value) {
+  combined_state_data <- combined_state_data |>
     filter(division != "ERROR") |>
     group_by(division, year) |>
     summarize(mean_value = mean({{default_var_name}}))
-  
-  ggplot(df, aes(x = year, y = mean_value, color = division)) + 
+
+  ggplot(combined_state_data, aes(x = year, y = mean_value, color = division)) +
     geom_line() +
-    labs(x = "Year", 
-         y = "Mean Enrollment Value", 
-         color = "Division", 
+    labs(x = "Year",
+         y = "Mean Enrollment Value",
+         color = "Division",
          title = "Mean Enrollment Value by Year and Division")
 }
 
-plot.state(data_combined[[2]], default_var_name = value)
+plot.state(combined_state_data = data_combined[[2]], default_var_name = value)
+```
+
+### for the county level tibble
+
+- filter the data to only include data from the state specified
+- find the overall mean of the statistic (use get(var_name) here as well) for each Area_name and sort those values from largest to smallest if ‘top’ is specified or smallest to largest if ‘bottom’ is specified
+- obtain the top or bottom x number of Area_names from the previous step where x is given by the user or the default
+- filter the data for this state to only include the Area_name’s from the previous part 
+- plot the data with year as x-axis and original enrollment value as y-axis for counties refereed in query
+
+```{r}
+
+plot.county <- function(combined_county_data, default_state = "NC", default_var_name = value, top_or_bottom = "top", default_obs = 5){
+  
+  if (top_or_bottom == "top") {
+    area_name_for_plot <- combined_county_data |>
+      filter(state == default_state) |>
+      group_by(area_name) |>
+      summarize(mean_value = mean({{default_var_name}})) |>
+      arrange(desc(mean_value)) |>
+      slice(1:default_obs) |>
+      pull(area_name)
+    
+    area_name_for_plot
+  } else if (top_or_bottom == "bottom") {
+    area_name_for_plot <- combined_county_data |>
+      filter(state == default_state) |>
+      group_by(area_name) |>
+      summarize(mean_value = mean({{default_var_name}})) |>
+      arrange(mean_value) |>
+      slice(1:default_obs) |>
+      pull(area_name)
+    
+    area_name_for_plot
+  } 
+  
+  plot_state <- data_combined[[1]] |>
+    filter(area_name %in% area_name_for_plot)
+  
+  ggplot(plot_state, aes(x = year, y = value, color = area_name)) +
+    geom_line() +
+    labs(x = "Year",
+         y = "Enrollment Value",
+         color = "Area_name",
+         title = "Enrollment Value by Year in Counties Referred")
+}
+
+plot.county(combined_county_data = data_combined[[1]], default_state = "CA", default_var_name = value, top_or_bottom = "bottom", default_obs = 10)
 
 ```
