@@ -1,6 +1,7 @@
 ---
 title: "ST558 Project 1"
 author: "Flaherty and Lu"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
 format: html
 editor: visual
 editor_options: 
@@ -17,27 +18,33 @@ editor_options:
 
 ```{r}
 library(tidyverse)
+
+#read in csv data from URL
 edu01a_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv") |> 
   select(Area_name, STCOU, ends_with("D")) |>
   rename("area_name" = "Area_name")
+
 edu01a_data
 ```
 
 2.  Convert the data into long format where each row has only one enrollment value for that area_name.
 
 ```{r}
+#manipulating data as required above
 edu01a_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv") |> 
   select(Area_name, STCOU, ends_with("D")) |>
   rename("area_name" = "Area_name") |> 
   pivot_longer(cols = is.numeric,
                names_to = "enrollment",
                values_to = "value")
+
 edu01a_data
 ```
 
 3.  Parse the string from the "Enrollment" column to pull out the year, and convert the year into a numeric value. Grab the first three characters and following four digits to create a new variable.
 
 ```{r}
+#creating new variables as required above
 edu01a_data <- edu01a_data |> 
   mutate(measurement = substr(enrollment, 1, 7)) |> 
   mutate(year = substr(enrollment, 8, 9))
@@ -52,15 +59,20 @@ edu01a_data
 -   One data set that contains only county level data. Add a class to the tibble called county
 
 ```{r}
+#get index to reference selecting rows
 county_index <- grep(pattern = ", \\w\\w", edu01a_data$area_name)
 
+#subsetting data to get county level data
 county_data <- edu01a_data[county_index,]
 county_data
+
 class(county_data) <- c("county", class(county_data))
 class(county_data)
 
+#subsetting data to get non-county level data
 non_county_data <- edu01a_data[- county_index,]
 non_county_data
+
 class(non_county_data) <- c("state", class(non_county_data))
 class(non_county_data)
 ```
@@ -68,14 +80,17 @@ class(non_county_data)
 5.  For the county level tibble, create a new variable that describes which state one of these county measurements corresponds to (the two digit abbreviation).
 
 ```{r}
+#get the last two characters from area_name
 county_data <- county_data |> 
   mutate(state = substr(county_data$area_name, nchar(county_data$area_name) - 1, nchar(county_data$area_name)))
+
 county_data
 ```
 
 6.  For the non-county level tibble, create a new variable called “division” corresponding to the state’s classification of division here. If row corresponds to a non-state (i.e. UNITED STATES), return ERROR for the division.
 
 ```{r}
+#use ifelse() to group counties together into each corresponding division
 non_county_data <- non_county_data |>
   mutate(division = ifelse(non_county_data$area_name %in% c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT"),"Division 1", 
                            ifelse(non_county_data$area_name %in% c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA"), "Division 2", 
@@ -87,6 +102,7 @@ non_county_data <- non_county_data |>
                                                                      ifelse(non_county_data$area_name %in% c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING"), "Division 8",
                                                                             ifelse(non_county_data$area_name %in% c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON"), "Division 9",
                                                                                    "ERROR"))))))))))
+
 non_county_data
 ```
 
@@ -95,6 +111,7 @@ non_county_data
 -   Write one function that does steps 1 & 2 above. Give an optional argument that allows the user to specify the name of the column representing the value (enrollment for these data sets).
 
 ```{r}
+#create a function to read in csv data and reshaping data from wide to long
 function_for_step_1_2 <- function(url, what_var_name = "value") {
   tmp <- read_csv(url) |>
     select(Area_name, STCOU, ends_with("D")) |>
@@ -109,6 +126,7 @@ function_for_step_1_2 <- function(url, what_var_name = "value") {
 -   Write another function that takes in the output of step 2 and does step 3 above.
 
 ```{r}
+#create a function to add new variables and convert strings to date
 function_for_step_3 <- function(tmp) {
   tmp <- tmp |> 
     mutate(measurement = substr(enrollment, 1, 7)) |>
@@ -122,6 +140,7 @@ function_for_step_3 <- function(tmp) {
 -   Write a function to do step 5.
 
 ```{r}
+#create a function to grab the abbreviation names of states from column area_name
 function_for_step_5 <- function(county_data) {
   county_data <- county_data |> 
     mutate(state = substr(county_data$area_name, nchar(county_data$area_name) - 1, nchar(county_data$area_name)))
@@ -132,6 +151,7 @@ function_for_step_5 <- function(county_data) {
 -   Write a function to do step 6.
 
 ```{r}
+#create a function to group counties together into corresponding divisions
 function_for_step_6 <- function(non_county_data) {
   non_county_data <- non_county_data |>
     mutate(division = ifelse(non_county_data$area_name %in% c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT"),"Division 1", 
@@ -151,14 +171,18 @@ function_for_step_6 <- function(non_county_data) {
 -   Write another function that takes in the output from step 3 and creates the two tibbles in step 4, calls the above two functions (to perform steps 5 and 6), and returns two final tibbles.
 
 ```{r}
+#create a function to do multiple things as required above
 function_for_steps4_5_6 <- function(tmp) {
   county_index <- grep(pattern = ", \\w\\w", tmp$area_name)
   county_data <- tmp[county_index,]
   class(county_data) <- c("county", class(county_data))
+  
   non_county_data <- tmp[- county_index,]
   class(non_county_data) <- c("state", class(non_county_data))
+  
   county_data <- county_data |> function_for_step_5 ()
   non_county_data <- non_county_data |> function_for_step_6 ()
+  
   return(list(county_data, non_county_data))
 } 
 ```
@@ -166,10 +190,12 @@ function_for_steps4_5_6 <- function(tmp) {
 -   Creating a wrapper function that takes in the URL of a .csv file in this format and the optional argument for the variable name, calls the functions you wrote above, and then returns the two tibbles.
 
 ```{r}
+#create a wrapper function that perform all the tasks together as required above
 my_wrapper <- function(url, what_var_name = "value") {
   result <- function_for_step_1_2(url, what_var_name) |>
     function_for_step_3() |>
     function_for_steps4_5_6 ()
+  
   return(result)
 }
 ```
@@ -190,16 +216,18 @@ edu01b_data_from_wrapper
 -   Write a single short function that takes in the results of two calls to the wrapper function.
 
 ```{r}
+#create a function to combine data from two datasets
 combining_data <- function(tmp_1, tmp_2) {
   county_data_combined <- dplyr::bind_rows(tmp_1[[1]], tmp_2[[1]])
   non_county_data_combined <- dplyr::bind_rows(tmp_1[[2]], tmp_2[[2]])
+  
   tmp_3 <- list(county_data_combined, non_county_data_combined)
+  
   return(tmp_3)
 }
 
 data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
 data_combined
-
 ```
 
 ## Writing a Generic Function for Summarizing.
@@ -258,7 +286,7 @@ plot.state(combined_state_data = data_combined[[2]], what_var_name = value)
 - plot the data with year as x-axis and original enrollment value as y-axis for counties refereed in query
 
 ```{r}
-
+#create a function as required above
 plot.county <- function(combined_county_data, what_var_name = "value", which_state = "NC",  top_or_bottom = "top", how_many_obs = 5){
   
   if (top_or_bottom == "top") {
@@ -306,12 +334,15 @@ plot.county(combined_county_data = data_combined[[1]], what_var_name = "value", 
 
 ```{r}
 # Pick a different name "enroll_value" instead of the default value "value" for the name of the enrollment data column
-
+#read in one dataset
 edu01a_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv", what_var_name = "enroll_value")
+
 edu01a_data_from_wrapper
 
+#read in another dataset
 edu01b_data_from_wrapper <-
 my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv", what_var_name = "enroll_value")
+
 edu01b_data_from_wrapper
 
 ```
@@ -319,17 +350,16 @@ edu01b_data_from_wrapper
 - Run your data combining function to put these into one object (with two data frames)
 
 ```{r}
-
+#combine two datasets
 data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
 data_combined
-
 ```
 
 - Use the plot function on the state data frame
 
 ```{r}
 #Use the previously picked different name "enroll_value" to refer to the name of the enrollment data column here
-plot.state(combined_state_data = data_combined[[2]], what_var_name = "enroll_value")
+plot.state(combined_state_data = data_combined[[2]], what_var_name = enroll_value)
 ```
 
 - Use the plot function on the county data frame
