@@ -11,7 +11,7 @@ We are interested in various types of census data, and aim to create functions t
 
 The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv>. We could either download this locally and save it to our R session, accessing it through the working directory of our projects, or grab the data directly from the url. We opt for the latter. To start our analysis, we installed any packages we might need with `install.packages`, and call them here with `library()`.
 
-```{r, include=FALSE, warning = FALSE, message=FALSE}
+```{r, warning = FALSE, message=FALSE}
 library(tidyverse)            
 library(readxl)
 
@@ -23,7 +23,7 @@ census
 ### Initial Data Exploration
 To get an initial glance at the data, we try normal summary functions. Since the output of these functions is so long, we admit it here. What is clear from the output is that without additional context for what the variables mean, the file contents would be very confusing.
 
-```{r, include=FALSE}
+```{r, output=FALSE}
 str(census)
 summary(census)
 ```
@@ -52,7 +52,7 @@ census
 #### Break Apart Census Code (Step 3)
 In general, we want the smallest piece of data stored in it's own column. Specific to this file, the census code encodes a lot of information which we'd like to break up so that we can more easily filter it in the future. 
 
-One way to do so is to extract the year from which the survey was conducted on, and store the year and census type in their own columns. Note that direct inspection on a csv file giving information on the variables, namely using ``=SORT(UNIQUE(RIGHT(range_of_cells, 4)))`, showed that no data existed prior to 1910-- any two-digit code less than 10 will be from the 2000s.
+One way to do so is to extract the year from which the survey was conducted on, and store the year and census type in their own columns. Note that direct inspection on a csv file giving information on the variables, namely using `=SORT(UNIQUE(RIGHT(range_of_cells, 4)))`, showed that no data existed prior to 1910-- any two-digit code less than 10 will be from the 2000s.
 
 Since we are in the `tidyverse` already, it makes sense to utilize the `stringr` package to deal with these strings. Within that packages, `str_sub` extracts parts of a string. Since we know the first 7 characters of our string give the survey type, we can directly extract those to form a new column. Since we know the next two characters of our string give the year, we can append the relevant first two digits to make a year. We have already explained that no data prior to 1910 exists, so know that any data with a year value under 10 will be from the 2000s. 
 
@@ -280,7 +280,7 @@ function_wrap=function(url, default_var_name="observed") {
 
 We check that this performs as expected by comparing it's output to the values we already computed. Using the `all.equal` function, we see that it does!
 
-```{r, warning = FALSE, message=FALSE, show_col_types = FALSE,  results='hide'}
+```{r}
   suppressMessages({test=function_wrap(url1)})
   all.equal(test[[1]], county)
   all.equal(test[[2]], noncounty)
@@ -411,7 +411,7 @@ url_list=list(url1, url2,url3,url4,url5,url6)
 
 For each url in our list, we apply our data processing function `function_wrap`. We create common names for the output of our data sources: `data1` for the first url (what we've previously called `census`), `data2` for the second, etc.
 
-```{r, include=FALSE, output=FALSE, warnings=FALSE, message=FALSE}
+```{r, output=FALSE}
 for (i in 1:6) {
   myvar=paste0("data",i)
   assign(myvar, function_wrap(url_list[[i]]))
