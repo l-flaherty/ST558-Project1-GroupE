@@ -17,6 +17,7 @@ library(readxl)
 
 url1="https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
 census=read_csv(url1)
+census
 ```
 
 ### Initial Data Exploration
@@ -31,7 +32,7 @@ Luckily we are given some of this information. The file contains census data fro
 
 
 ### Data Manipulation And Wrangling
-#### Select, Reshape, And Rename
+#### Select, Reshape, And Rename (Step 1 and 2)
 
 As is, the data is not in a great format for analysis. We want to filter down the data to just the columns we actually care about, and to put it in long format. That is, instead of a distinct area in each row with many different census types in the columns, we want to have just one record for each row, with an additional column added for the census code.
 
@@ -48,7 +49,7 @@ census=census |>
 census
 ```
 
-#### Break Apart Census Code
+#### Break Apart Census Code (Step 3)
 In general, we want the smallest piece of data stored in it's own column. Specific to this file, the census code encodes a lot of information which we'd like to break up so that we can more easily filter it in the future. 
 
 One way to do so is to extract the year from which the survey was conducted on, and store the year and census type in their own columns. Note that direct inspection on a csv file giving information on the variables, namely using ``=SORT(UNIQUE(RIGHT(range_of_cells, 4)))`, showed that no data existed prior to 1910-- any two-digit code less than 10 will be from the 2000s.
@@ -72,7 +73,7 @@ rm(yy, survey_type, survey_year)                             #no need to keep#
 
 census
 ```
-#### Break Into County Vs. Non-County Data    
+#### Break Into County Vs. Non-County Data  (Step 4)
 
 In keeping with the above, we'd like to get more granular into our data, specifying the county name when available. To do so, we again rely on the `stringr` package and perform similar operations to the above. 
 
@@ -111,7 +112,7 @@ class(county)
 class(noncounty)
 ```
 
-#### Classifying States And Divisions
+#### Classifying States And Counties (Step 5)
 With the distinct tables now in hand, we want to break up the `area_name` to both the county and state in the case of the `county` data, and to include the division in the case of the `noncounty` data. 
 
 In the `county` data, we are just extracting the last two characters of the string for the state abbreviation, and all parts of the string less the last four for the county (two for the state abbreviation, one for the space, one for the comma). We can do this succinctly with the same `str_sub` function, utilizing the `nchar` function in the process (which logically returns the number of characters a string has).
@@ -125,6 +126,7 @@ county=county |>
 county
 ```
 
+#### Classifying States And Divisions (Step 6)
 In the `noncounty` data, we are adding a variable corresponding to the state's classification of divisions found at [https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector](https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector). We store these classifications in a list called `region`. Note that the syntax of the strings in our list was choosen to follow the syntax of the names which exist in our `noncounty$area_name`.
 
 ```{r}
@@ -297,6 +299,7 @@ tibble1
 tibble2
 ```
 
+## Call Function And Combine Data
 We then write a function to combine like data with like data (i.e. the county data from the first data source is combined with the county data from the second data source). We use the base function `rbind()` to do so, though we could also use the `dplyr` function `bind_rows()`.
 
 ```{r}
@@ -311,11 +314,11 @@ combined_data
 ```
 
 
-## Summarizing With Visuals
+## Writing Generic Functions For Summarizing
 We now turn our attention to summarizing our results. We'd like to create functions that utilize the `ggplot2()` package in the `tidyverse` to return nice visuals of our data.
 
 ### Mean Enrollemnt By Division
-Our first function will summarize non-county data, returning the mean enrollment value by year for each division that the respective state is in. We only care about divisions, so exclude any values in our data that  aren't part of one by using `filter`. We want to plot our data for each division by year, so we use `group_by()` to do so. Finally, we want to find the mean value of each division each year, which we can grab with the `summarize()` function. We then plot this object using `ggplot()`, making small adjustments to make the output more visually appealing (such as centering the title with `theme(plot.title = element_text(hjust = 0.5))` and removing `ggplots()` ugly default with ` theme_bw()`). 
+Our first function will summarize non-county data, returning the mean enrollment value by year for each division that the respective state is in. We only care about divisions, so exclude any values in our data that  aren't part of one by using `filter`. We want to plot our data for each division by year, so we use `group_by()` to do so. Finally, we want to find the mean value of each division each year, which we can grab with the `summarize()` function. We then plot this object using `ggplot()`, making small adjustments to make the output more visually appealing (such as centering the title with `theme(plot.title=element_text(hjust=0.5))` and removing `ggplots()` ugly default with ` theme_bw()`). 
 
 ```{r}
 plot_state=function(mytibble, default_var_name="observed") {
@@ -329,9 +332,9 @@ plot_state=function(mytibble, default_var_name="observed") {
     labs(x="Year", 
          y="Mean Enrollemnt Value", 
          color="Division", 
-         title = "Mean Enrollment Value by Year and Division") +
+         title="Mean Enrollment Value by Year and Division") +
     theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title=element_text(hjust=0.5))
 }
 ```
 
@@ -339,4 +342,153 @@ To make sure the function works as expected, we pass in the output from our `com
 
 ```{r}
 plot_state(combined_data[[2]])
+```
+### Mean Data By County
+
+We want to create a similar function to deal with county data, this time with more flexibility. We'd like to be able to show how only the top (or bottom) counties in a given state change over time. We put in a few default values. For example, if no state is inputted, we also look at North Carolina, if no sort type is provided we always look at the top values, etc. The function first extracts the top/bottom counties in the specified state using normal `dplyr` functions, then filters the inputted tibble to just those counties, and finally plots how the values change over time in a similar way to our ``ggplot2` functions above.
+
+
+```{r}
+plot_county=function(mytibble, 
+                        default_var_name="observed", 
+                        default_state="NC",  
+                        default_sort="top", 
+                        default_count=5){
+  
+  if (default_sort == "top") {
+    area_name_for_plot=mytibble |>
+      filter(state == default_state) |>
+      group_by(area_name) |>
+      summarize(mean_value = mean(get(default_var_name))) |>
+      arrange(desc(mean_value)) |>
+      slice(1:default_count) |>
+      pull(area_name)
+  } else if (default_sort == "bottom") {
+    area_name_for_plot=mytibble |>
+      filter(state == default_state) |>
+      group_by(area_name) |>
+      summarize(mean_value = mean(get(default_var_name))) |>
+      arrange(mean_value) |>
+      slice(1:default_count) |>
+      pull(area_name)
+  } 
+  
+  plot_state=mytibble |>
+    filter(area_name %in% area_name_for_plot)
+  
+  ggplot(plot_state, aes(x = survey_year, y = get(default_var_name), color = area_name)) +
+    geom_line() +
+    labs(x = "Year",
+         y = "Enrollment Value",
+         color = "Counties",
+         title = "Enrollment Value by Year in Counties Referred") +
+    theme_bw() +
+    theme(plot.title=element_text(hjust=0.5))
+}
+```
+
+To make sure it works as expected, we try it on one of our first datasets.
+
+
+```{r}
+plot_county(county)
+```
+
+
+## Put It Together
+
+### Add New Data
+In addition to the two urls we already have, we would also like to explore four other data sources. We put these urls into a list, which we plan to loop through in the future.
+
+```{r, include=FALSE, output=FALSE, warnings=FALSE, message=FALSE}
+url3="https://www4.stat.ncsu.edu/~online/datasets/PST01a.csv"
+url4="https://www4.stat.ncsu.edu/~online/datasets/PST01b.csv"
+url5="https://www4.stat.ncsu.edu/~online/datasets/PST01c.csv"
+url6="https://www4.stat.ncsu.edu/~online/datasets/PST01d.csv"
+
+url_list=list(url1, url2,url3,url4,url5,url6)
+```
+
+For each url in our list, we apply our data processing function `function_wrap`. We create common names for the output of our data sources: `data1` for the first url (what we've previously called `census`), `data2` for the second, etc.
+
+```{r, include=FALSE, output=FALSE, warnings=FALSE, message=FALSE}
+for (i in 1:6) {
+  myvar=paste0("data",i)
+  assign(myvar, function_wrap(url_list[[i]]))
+}
+```
+
+We then combine the data with our previously created `function_combine()`. We want to combine the first two urls and the last four urls.
+
+```{r}
+first_urls=function_combine(data1,data2)
+second_urls=function_combine(data3,
+  function_combine(data4,
+    function_combine(data5, data6)))
+
+first_urls
+second_urls
+```
+
+### Testing Our Functions
+#### First Group Of URLs
+
+Now we test our functions! First on our first urls. We look at the divsion data with our `plot_state()` function.
+
+```{r}
+plot_state(first_urls[[2]])
+```
+
+Then we look at various iterations of our `plot_county()` funciton. First we specify the state to be “NC”, the group being the top, the number looked at being 20.
+
+```{r}
+plot_county(first_urls[[1]], "observed", "NC", "top", 20)
+```
+Next we specify the state to be South Carolina, the group to be the bottom, and the number being looked at to be 7.
+
+```{r}
+plot_county(first_urls[[1]], "observed", "SC", "bottom", 7)
+```
+
+We can also just use our defaults.
+
+```{r}
+plot_county(first_urls[[1]])
+```
+And finally we can specify the state to be Pennsylvania, the group being the top, and the number looked at being 8.
+
+```{r}
+plot_county(first_urls[[1]], "observed", "PA", "top", 8)
+```
+
+#### Second Group Of URLs
+
+We now move our attention to the second group of urls. We can examine the divisions with our `plot_state()` function.
+
+```{r}
+plot_state(second_urls[[2]])
+```
+
+We can specify our state to be California, the group being the top, and the number looked at being 15 below.
+
+```{r}
+plot_county(second_urls[[1]], "observed", "CA", "top", 15)
+```
+
+Anoter example is to specify our state to be Texas, the group being the top, and the number being looked at 4 below. 
+
+```{r}
+plot_county(second_urls[[1]], "observed", "TX", "top", 4)
+```
+
+We can just use our defaults too.
+
+```{r}
+plot_county(second_urls[[1]])
+```
+
+Finally, we can specify the state to be New York, the group being the top, and the number being looked at to be 10.
+
+```{r}
+plot_county(second_urls[[1]], "observed", "NY", "top", 10)
 ```
