@@ -37,7 +37,7 @@ census=census |>
   pivot_longer(cols=ends_with("D"),
                names_to="code",    
                values_to="observed")
-
+census
 
 
 ###1c. parse strings###
@@ -54,7 +54,7 @@ survey_year=as.numeric(ifelse(yy<=10,                        #... but want to ma
 
 census=census |>
   mutate(survey_type=survey_type, survey_year=survey_year) |>
-  select(area_name, STCOU, survey_type, survey_year, observed)
+  select(area_name, STCOU, code, survey_type, survey_year, observed)
 
 rm(yy, survey_type, survey_year)                             #no need to keep#
 
@@ -76,8 +76,7 @@ class(noncounty)=c("state", class(noncounty))      #not really sure why necessar
 county=county |>
   mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)),
          district=str_sub(area_name, 1, nchar(county$area_name)-4)) |>
-  select(-area_name) |>
-  select(state, district, everything())
+  select(area_name, state, district, everything())
 
 
 
@@ -139,7 +138,7 @@ function_for_step_3=function(mytibble) {
                                 paste0("19", yy)))
   tmp=mytibble |>
     mutate(survey_type=survey_type, survey_year=survey_year) |>
-    select(area_name, STCOU, survey_type, survey_year, observed)
+    select(area_name, STCOU, code, survey_type, survey_year, observed)
   return(tmp)
 }
 
@@ -148,7 +147,7 @@ function_for_step_5=function(mytibble) {
     mutate(state=str_sub(area_name, nchar(mytibble$area_name) - 1, nchar(mytibble$area_name)),
            district=str_sub(area_name, 1, nchar(mytibble$area_name)-4)) |>
     select(-area_name) |>
-    select(state, district, everything())
+    select(area_name, state, district, everything())
   return(tmp)
 }
 
@@ -237,7 +236,7 @@ combined_data=function_combine(tibble1,tibble2)
 
 #####3. Summarizing #####
 ###3a. Non-county plotting function###
-plot.state=function(mytibble, default_var_name="observed") {
+plot_state=function(mytibble, default_var_name="observed") {
   tmp=mytibble |>
     filter(division != "ERROR") |>
     group_by(division, survey_year) |>

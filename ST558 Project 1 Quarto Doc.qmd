@@ -9,9 +9,9 @@ editor: visual
 
 We are interested in various types of census data, and aim to create functions that return visuals of said data from inputs of either urls or csv files. To start, we look at a single file before generalizing.
 
-The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv>. We could either download this locally and save it to our ression, accessing it through the working directory of our projects, or grab the data directly from the url. We opt for the latter. To start our analysis, we installed any packages we might need with `install.packages`, and call them here with `library()`.
+The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv>. We could either download this locally and save it to our R session, accessing it through the working directory of our projects, or grab the data directly from the url. We opt for the latter. To start our analysis, we installed any packages we might need with `install.packages`, and call them here with `library()`.
 
-```{r, include=FALSE}
+```{r, include=FALSE, warning = FALSE, message=FALSE}
 library(tidyverse)            
 library(readxl)
 
@@ -44,6 +44,8 @@ census=census |>
   pivot_longer(cols=ends_with("D"),
                names_to="code",    
                values_to="observed")
+
+census
 ```
 
 #### Break Apart Census Code
@@ -53,7 +55,7 @@ One way to do so is to extract the year from which the survey was conducted on, 
 
 Since we are in the `tidyverse` already, it makes sense to utilize the `stringr` package to deal with these strings. Within that packages, `str_sub` extracts parts of a string. Since we know the first 7 characters of our string give the survey type, we can directly extract those to form a new column. Since we know the next two characters of our string give the year, we can append the relevant first two digits to make a year. We have already explained that no data prior to 1910 exists, so know that any data with a year value under 10 will be from the 2000s. 
 
-```{r, output=FALSE}
+```{r}
 survey_type=str_sub(census$code, start=1, end=7)
 
 yy=as.numeric(str_sub(census$code, start=8, end=9))
@@ -64,9 +66,11 @@ survey_year=as.numeric(ifelse(yy<=10,
 
 census=census |>
   mutate(survey_type=survey_type, survey_year=survey_year) |>
-  select(area_name, STCOU, survey_type, survey_year, observed)
+  select(area_name, STCOU, code, survey_type, survey_year, observed)
 
 rm(yy, survey_type, survey_year)                             #no need to keep#
+
+census
 ```
 #### Break Into County Vs. Non-County Data    
 
@@ -85,6 +89,9 @@ a=str_locate(census$area_name, ",")[,1]            #dummy object, no commas in n
 noncounty=census[which(is.na(a)),]                 #keep non-county data together#
 county=census[which(!is.na(a)),]                   #keep county data together#
 rm(a)                                              #no need to keep#
+
+noncounty
+county
 ```
 
 We can double check that this split worked as expected with `unique` from base R.
@@ -98,7 +105,10 @@ After verifying that the split worked as intended, we add a class to each tibble
 
 ```{r}
 class(county)=c("county", class(county))           
-class(noncounty)=c("state", class(noncounty))      
+class(noncounty)=c("state", class(noncounty))
+
+class(county)
+class(noncounty)
 ```
 
 #### Classifying States And Divisions
@@ -110,8 +120,9 @@ In the `county` data, we are just extracting the last two characters of the stri
 county=county |>
   mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)),
          district=str_sub(area_name, 1, nchar(county$area_name)-4)) |>
-  select(-area_name) |>
-  select(state, district, everything())
+  select(area_name, state, district, everything())
+
+county
 ```
 
 In the `noncounty` data, we are adding a variable corresponding to the state's classification of divisions found at [https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector](https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector). We store these classifications in a list called `region`. Note that the syntax of the strings in our list was choosen to follow the syntax of the names which exist in our `noncounty$area_name`.
@@ -148,6 +159,8 @@ noncounty$division=division
 noncounty=noncounty |> select(area_name, division, everything())
 
 rm(d1,d2,d3,d4,d5,d6,d7,d8,d9,region,division,i,j)      #keep environment clean#
+
+noncounty
 ```
 
 
@@ -182,7 +195,7 @@ function_for_step_3=function(mytibble) {
                                 paste0("19", yy)))
   tmp=mytibble |>
     mutate(survey_type=survey_type, survey_year=survey_year) |>
-    select(area_name, STCOU, survey_type, survey_year, observed)
+    select(area_name, STCOU, code, survey_type, survey_year, observed)
   return(tmp)
 }
 ```
@@ -194,8 +207,7 @@ function_for_step_5=function(mytibble) {
   tmp=mytibble |> 
     mutate(state=str_sub(area_name, nchar(mytibble$area_name) - 1, nchar(mytibble$area_name)),
            district=str_sub(area_name, 1, nchar(mytibble$area_name)-4)) |>
-    select(-area_name) |>
-    select(state, district, everything())
+    select(area_name, state, district, everything())
   return(tmp)
 }
 ```
@@ -266,11 +278,11 @@ function_wrap=function(url, default_var_name="observed") {
 
 We check that this performs as expected by comparing it's output to the values we already computed. Using the `all.equal` function, we see that it does!
 
-```{r}
-test=function_wrap(url1)
-all.equal(test[[1]], county)
-all.equal(test[[2]], noncounty)
-rm(test)
+```{r, warning = FALSE, message=FALSE, show_col_types = FALSE,  results='hide'}
+  suppressMessages({test=function_wrap(url1)})
+  all.equal(test[[1]], county)
+  all.equal(test[[2]], noncounty)
+  rm(test)
 ```
 
 With this function now in hand, we read in both the old data source and a new one accessible at [https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv](https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv).
@@ -280,6 +292,9 @@ url2="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
 
 tibble1=function_wrap(url1)
 tibble2=function_wrap(url2)
+
+tibble1
+tibble2
 ```
 
 We then write a function to combine like data with like data (i.e. the county data from the first data source is combined with the county data from the second data source). We use the base function `rbind()` to do so, though we could also use the `dplyr` function `bind_rows()`.
@@ -292,6 +307,7 @@ function_combine=function(mytib1, mytib2) {
 }
 
 combined_data=function_combine(tibble1,tibble2)
+combined_data
 ```
 
 
@@ -302,7 +318,7 @@ We now turn our attention to summarizing our results. We'd like to create functi
 Our first function will summarize non-county data, returning the mean enrollment value by year for each division that the respective state is in. We only care about divisions, so exclude any values in our data that  aren't part of one by using `filter`. We want to plot our data for each division by year, so we use `group_by()` to do so. Finally, we want to find the mean value of each division each year, which we can grab with the `summarize()` function. We then plot this object using `ggplot()`, making small adjustments to make the output more visually appealing (such as centering the title with `theme(plot.title = element_text(hjust = 0.5))` and removing `ggplots()` ugly default with ` theme_bw()`). 
 
 ```{r}
-plot.state=function(mytibble, default_var_name="observed") {
+plot_state=function(mytibble, default_var_name="observed") {
   tmp=mytibble |>
     filter(division != "ERROR") |>
     group_by(division, survey_year) |>
@@ -322,5 +338,5 @@ plot.state=function(mytibble, default_var_name="observed") {
 To make sure the function works as expected, we pass in the output from our `combined_data()`.
 
 ```{r}
-plot.state(combined_data[[2]])
+plot_state(combined_data[[2]])
 ```
