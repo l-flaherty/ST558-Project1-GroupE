@@ -400,7 +400,7 @@ plot_county(county)
 ### Add New Data
 In addition to the two urls we already have, we would also like to explore four other data sources. We put these urls into a list, which we plan to loop through in the future.
 
-```{r, include=FALSE, output=FALSE, warnings=FALSE, message=FALSE}
+```{r}
 url3="https://www4.stat.ncsu.edu/~online/datasets/PST01a.csv"
 url4="https://www4.stat.ncsu.edu/~online/datasets/PST01b.csv"
 url5="https://www4.stat.ncsu.edu/~online/datasets/PST01c.csv"
