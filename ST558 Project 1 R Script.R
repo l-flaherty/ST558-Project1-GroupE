@@ -37,7 +37,7 @@ census=census |>
   pivot_longer(cols=ends_with("D"),
                names_to="code",    
                values_to="observed")
-
+census
 
 
 ###1c. parse strings###
@@ -54,7 +54,7 @@ survey_year=as.numeric(ifelse(yy<=10,                        #... but want to ma
 
 census=census |>
   mutate(survey_type=survey_type, survey_year=survey_year) |>
-  select(area_name, STCOU, survey_type, survey_year, observed)
+  select(area_name, STCOU, code, survey_type, survey_year, observed)
 
 rm(yy, survey_type, survey_year)                             #no need to keep#
 
@@ -76,8 +76,7 @@ class(noncounty)=c("state", class(noncounty))      #not really sure why necessar
 county=county |>
   mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)),
          district=str_sub(area_name, 1, nchar(county$area_name)-4)) |>
-  select(-area_name) |>
-  select(state, district, everything())
+  select(area_name, state, district, everything())
 
 
 
@@ -117,10 +116,6 @@ rm(d1,d2,d3,d4,d5,d6,d7,d8,d9,region,division,i,j)      #keep environment clean#
 
 
 #####2. Function Writing#####
-#xxxx double check that column name choices are okayxxxx#
-#xxxxx double check that upon parsing strings, remove old column okay#
-#xxxx look at defaults and naming#
-
 function_for_step_1_2=function(url, default_var_name="observed") {
   tmp=read_csv(url) |>
     select(Area_name, STCOU, ends_with("D")) |>
@@ -139,7 +134,7 @@ function_for_step_3=function(mytibble) {
                                 paste0("19", yy)))
   tmp=mytibble |>
     mutate(survey_type=survey_type, survey_year=survey_year) |>
-    select(area_name, STCOU, survey_type, survey_year, observed)
+    select(area_name, STCOU, code, survey_type, survey_year, observed)
   return(tmp)
 }
 
@@ -148,7 +143,7 @@ function_for_step_5=function(mytibble) {
     mutate(state=str_sub(area_name, nchar(mytibble$area_name) - 1, nchar(mytibble$area_name)),
            district=str_sub(area_name, 1, nchar(mytibble$area_name)-4)) |>
     select(-area_name) |>
-    select(state, district, everything())
+    select(area_name, state, district, everything())
   return(tmp)
 }
 
@@ -237,7 +232,7 @@ combined_data=function_combine(tibble1,tibble2)
 
 #####3. Summarizing #####
 ###3a. Non-county plotting function###
-plot.state=function(mytibble, default_var_name="observed") {
+plot_state=function(mytibble, default_var_name="observed") {
   tmp=mytibble |>
     filter(division != "ERROR") |>
     group_by(division, survey_year) |>
@@ -248,33 +243,50 @@ plot.state=function(mytibble, default_var_name="observed") {
     labs(x="Year", 
          y="Mean Enrollemnt Value", 
          color="Division", 
-         title = "Mean Enrollment Value by Year and Division") +
+         title="Mean Enrollment Value by Year and Division") +
     theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title=element_text(hjust=0.5))
 }
 
-plot.state(combined_data[[2]])
 
 
 ###3b. County plotting###
-#x ask about sorting and outputX#
-"plot.county=function(mytibble,
-                     default_state='NC', 
-                     default_filter='top', 
-                     default_count=5,
-                     default_var_name='observed') {
+plot_county=function(mytibble, 
+                        default_var_name="observed", 
+                        default_state="NC",  
+                        default_sort="top", 
+                        default_count=5){
   
-  area_name=paste0(mytibble$district, ", ", mytibble$state)
-  mytibble$area_name=area_name
+  if (default_sort == "top") {
+    area_name_for_plot=mytibble |>
+      filter(state == default_state) |>
+      group_by(area_name) |>
+      summarize(mean_value = mean(get(default_var_name))) |>
+      arrange(desc(mean_value)) |>
+      slice(1:default_count) |>
+      pull(area_name)
+  } else if (default_sort == "bottom") {
+    area_name_for_plot=mytibble |>
+      filter(state == default_state) |>
+      group_by(area_name) |>
+      summarize(mean_value = mean(get(default_var_name))) |>
+      arrange(mean_value) |>
+      slice(1:default_count) |>
+      pull(area_name)
+  } 
   
-  tmp=mytibble |>
-    filter(state=default_state) |>
-    group_by(area_name) |>
-    arrange(ifelse(default_filter=='top',
-                   default_var_name,
-                   desc(default_var_name))) |>
-    slice(1:default_count)
-}"
+  plot_state=mytibble |>
+    filter(area_name %in% area_name_for_plot)
+  
+  ggplot(plot_state, aes(x = survey_year, y = get(default_var_name), color = area_name)) +
+    geom_line() +
+    labs(x = "Year",
+         y = "Enrollment Value",
+         color = "Counties",
+         title = "Enrollment Value by Year in Counties Referred") +
+    theme_bw() +
+    theme(plot.title=element_text(hjust=0.5))
+}
 
 
 
@@ -299,18 +311,15 @@ second_urls=function_combine(data3,
   function_combine(data4,
     function_combine(data5, data6)))
 
-#Running Functions On Combined Data Sources#
-plot.state(first_urls[[2]])
+#Try Out Function#
+plot_state(first_urls[[2]])
+plot_county(first_urls[[1]], "observed", "NC", "top", 20)
+plot_county(first_urls[[1]], "observed", "SC", "bottom", 7)
+plot_county(first_urls[[1]])
+plot_county(first_urls[[1]], "observed", "PA", "top", 8)
 
-"plot.county(first_urls[[1]],NC, top, 20, observed)
-plot.county(first_urls[[1]],SC, bottom, 7, observed)
-plot.county(first_urls[[1]])
-plot.county(first_urls[[1]], PA, top, 8, observed)"
-
-plot.state(second_urls[[2]])
-
-"plot.county(second_urls[[1]],CA, top, 15, observed)
-plot.county(second_urls[[1]],TX, bottom, 4, observed)
-plot.county(second_urls[[1]])
-plot.county(second_urls[[1]], NY, top, 10, observed)"
-
+plot_state(second_urls[[2]])
+plot_county(second_urls[[1]], "observed", "CA", "top", 15)
+plot_county(second_urls[[1]], "observed", "TX", "top", 4)
+plot_county(second_urls[[1]])
+plot_county(second_urls[[1]], "observed", "NY", "top", 10)
