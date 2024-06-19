@@ -254,7 +254,7 @@ plot.state <- function(combined_state_data, what_var_name = "value") {
          title = "Mean Enrollment Value by Year and Division")
 }
 
-plot.state(combined_state_data = data_combined[[2]], what_var_name = "value")
+plot.state(combined_state_data = data_combined[[2]])
 ```
 
 
@@ -274,7 +274,7 @@ plot.state <- function(combined_state_data, what_var_name = value) {
          title = "Mean Enrollment Value by Year and Division")
 }
 
-plot.state(combined_state_data = data_combined[[2]], what_var_name = value)
+plot.state(combined_state_data = data_combined[[2]])
 ```
 
 ### for the county level tibble
@@ -322,7 +322,9 @@ plot.county <- function(combined_county_data, what_var_name = "value", which_sta
          title = "Enrollment Value by Year in Counties Referred")
 }
 
-plot.county(combined_county_data = data_combined[[1]], what_var_name = "value", which_state = "CA",  top_or_bottom = "bottom", how_many_obs = 10)
+#plot.county(combined_county_data = data_combined[[1]], what_var_name = "value", which_state = "CA",  top_or_bottom = "bottom", how_many_obs = 10)
+
+plot.county(combined_county_data = data_combined[[1]], which_state = "NC")
 
 ```
 

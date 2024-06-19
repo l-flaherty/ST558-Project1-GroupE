@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Flaherty and Lu">
-<meta name="dcterms.date" content="2024-06-17">
+<meta name="dcterms.date" content="2024-06-18">
 
 <title>ST558 Project 1</title>
 <style>
@@ -135,7 +135,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 17, 2024</p>
+      <p class="date">June 18, 2024</p>
     </div>
   </div>
   
@@ -681,7 +681,7 @@ dbl (20): EDU010197F, EDU010197D, EDU010198F, EDU010198D, EDU010199F, EDU010...
 <span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Mean Enrollment Value by Year and Division"</span>)</span>
 <span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.state</span>(<span class="at">combined_state_data =</span> data_combined[[<span class="dv">2</span>]], <span class="at">what_var_name =</span> <span class="st">"value"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.state</span>(<span class="at">combined_state_data =</span> data_combined[[<span class="dv">2</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has grouped output by 'division'. You can override using the
 `.groups` argument.</code></pre>
@@ -710,7 +710,7 @@ dbl (20): EDU010197F, EDU010197D, EDU010198F, EDU010198D, EDU010199F, EDU010...
 <span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Mean Enrollment Value by Year and Division"</span>)</span>
 <span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.state</span>(<span class="at">combined_state_data =</span> data_combined[[<span class="dv">2</span>]], <span class="at">what_var_name =</span> value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.state</span>(<span class="at">combined_state_data =</span> data_combined[[<span class="dv">2</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has grouped output by 'division'. You can override using the
 `.groups` argument.</code></pre>
@@ -770,7 +770,9 @@ dbl (20): EDU010197F, EDU010197D, EDU010198F, EDU010198D, EDU010199F, EDU010...
 <span id="cb49-34"><a href="#cb49-34" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Enrollment Value by Year in Counties Referred"</span>)</span>
 <span id="cb49-35"><a href="#cb49-35" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb49-36"><a href="#cb49-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-37"><a href="#cb49-37" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.county</span>(<span class="at">combined_county_data =</span> data_combined[[<span class="dv">1</span>]], <span class="at">what_var_name =</span> <span class="st">"value"</span>, <span class="at">which_state =</span> <span class="st">"CA"</span>,  <span class="at">top_or_bottom =</span> <span class="st">"bottom"</span>, <span class="at">how_many_obs =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb49-37"><a href="#cb49-37" aria-hidden="true" tabindex="-1"></a><span class="co">#plot.county(combined_county_data = data_combined[[1]], what_var_name = "value", which_state = "CA",  top_or_bottom = "bottom", how_many_obs = 10)</span></span>
+<span id="cb49-38"><a href="#cb49-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-39"><a href="#cb49-39" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.county</span>(<span class="at">combined_county_data =</span> data_combined[[<span class="dv">1</span>]], <span class="at">which_state =</span> <span class="st">"NC"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
