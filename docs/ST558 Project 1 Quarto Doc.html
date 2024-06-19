@@ -387,7 +387,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="classifying-states-and-divisions-step-6" class="level4">
 <h4 class="anchored" data-anchor-id="classifying-states-and-divisions-step-6">Classifying States And Divisions (Step 6)</h4>
-<p>In the <code>noncounty</code> data, we are adding a variable corresponding to the state’s classification of divisions found at <a href="https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector">https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector</a>. We store these classifications in a list called <code>region</code>. Note that the syntax of the strings in our list was choosen to follow the syntax of the names which exist in our <code>noncounty$area_name</code>.</p>
+<p>In the <code>noncounty</code> data, we are adding a variable corresponding to the state’s classification of divisions found at <a href="https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector" class="uri">https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector</a>. We store these classifications in a list called <code>region</code>. Note that the syntax of the strings in our list was choosen to follow the syntax of the names which exist in our <code>noncounty$area_name</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>d1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"CONNECTICUT"</span>, <span class="st">"MAINE"</span>, <span class="st">"MASSACHUSETTS"</span>, <span class="st">"NEW HAMPSHIRE"</span>, <span class="st">"RHODE ISLAND"</span>, <span class="st">"VERMONT"</span>)</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>d2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"NEW JERSEY"</span>, <span class="st">"NEW YORK"</span>, <span class="st">"PENNSYLVANIA"</span>)</span>
@@ -549,7 +549,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>With this function now in hand, we read in both the old data source and a new one accessible at <a href="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv">https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv</a>.</p>
+<p>With this function now in hand, we read in both the old data source and a new one accessible at <a href="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv" class="uri">https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv</a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>url2 <span class="ot">&lt;-</span> <span class="st">"https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
