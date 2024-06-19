@@ -15,13 +15,13 @@ The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU0
 library(tidyverse)            
 library(readxl)
 
-url1="https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
-census=read_csv(url1)
+url1 <- "https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+census <- read_csv(url1)
 census
 ```
 
 ### Initial Data Exploration
-To get an initial glance at the data, we try normal summary functions. Since the output of these functions is so long, we admit it here. What is clear from the output is that without additional context for what the variables mean, the file contents would be very confusing.
+To get an initial glance at the data, we try normal summary functions. Since the output of these functions is so long, we omit it here. What is clear from the output is that without additional context for what the variables mean, the file contents would be very confusing.
 
 ```{r, output=FALSE}
 str(census)
@@ -36,10 +36,10 @@ Luckily we are given some of this information. The file contains census data fro
 
 As is, the data is not in a great format for analysis. We want to filter down the data to just the columns we actually care about, and to put it in long format. That is, instead of a distinct area in each row with many different census types in the columns, we want to have just one record for each row, with an additional column added for the census code.
 
-To choose the columns we want, ew use the `select()` function from the `tidyverse`. To keep our naming conventions consistent, we also want to `rename()` certain columns. Additionally, we want to transform our data structure so that the columns holding count data are put in a single column, and the data from those columns put in a new column called `observed`. We can do so with the `pivot_longer()` function. Putting all these steps together with the natural chaining operation `|>`, we can overwrite our object as follows: 
+To choose the columns we want, we use the `select()` function from the `tidyverse`. To keep our naming conventions consistent, we also want to `rename()` certain columns. Additionally, we want to transform our data structure so that the columns holding count data are put in a single column, and the data from those columns put in a new column called `observed`. We can do so with the `pivot_longer()` function. Putting all these steps together with the natural chaining operation `|>`, we can overwrite our object as follows: 
 
 ```{r}
-census=census |>                   
+census <- census |>                   
   select(Area_name, STCOU, ends_with("D")) |>
   rename(area_name=Area_name) |>
   pivot_longer(cols=ends_with("D"),
@@ -54,22 +54,14 @@ In general, we want the smallest piece of data stored in it's own column. Specif
 
 One way to do so is to extract the year from which the survey was conducted on, and store the year and census type in their own columns. Note that direct inspection on a csv file giving information on the variables, namely using `=SORT(UNIQUE(RIGHT(range_of_cells, 4)))`, showed that no data existed prior to 1910-- any two-digit code less than 10 will be from the 2000s.
 
-Since we are in the `tidyverse` already, it makes sense to utilize the `stringr` package to deal with these strings. Within that packages, `str_sub` extracts parts of a string. Since we know the first 7 characters of our string give the survey type, we can directly extract those to form a new column. Since we know the next two characters of our string give the year, we can append the relevant first two digits to make a year. We have already explained that no data prior to 1910 exists, so know that any data with a year value under 10 will be from the 2000s. 
+Since we are in the `tidyverse` already, it makes sense to utilize the `stringr` package to deal with these strings. Within that packages, `str_sub()` extracts parts of a string. Since we know the first 7 characters of our string give the survey type, we can directly extract those to form a new column. Since we know the next two characters of our string give the year, we can append the relevant first two digits to make a year. We have already explained that no data prior to 1910 exists, so know that any data with a year value under 10 will be from the 2000s. 
 
 ```{r}
-survey_type=str_sub(census$code, start=1, end=7)
-
-yy=as.numeric(str_sub(census$code, start=8, end=9))
-range(yy)                          #87-96 so all from 90s here, but want to make robust#  
-survey_year=as.numeric(ifelse(yy<=10,                        
-                              paste0("200", yy),
-                              paste0("19", yy)))
-
-census=census |>
-  mutate(survey_type=survey_type, survey_year=survey_year) |>
+census <- census |>
+  mutate(survey_type=str_sub(code, start=1, end=7),
+         survey_year=year(parse_date_time(
+           str_sub(code, start=8, end=9), "y"))) |>
   select(area_name, STCOU, code, survey_type, survey_year, observed)
-
-rm(yy, survey_type, survey_year)                             #no need to keep#
 
 census
 ```
@@ -86,10 +78,10 @@ unique(census$area_name)[1:10]
 Notice that commas exist in areas which have the county specified (like "Autauga, AL"), but there are no commas in areas without county-level data (like "ALABAMA"). We can split our existing `census` tibble into two different tibbles, one with county-level data and one without, by searching for the rows in the tibble which have a comma. The `str_locate()` function in the `stringr` package does the trick, taking in our vector of `area_name`'s, searching for the comma, and returning a matrix giving the starting and ending character of where the comma exists. Since a comma is only one character, we only need one of these columns, and so return just the first column from our matrix. 
 
 ```{r}
-a=str_locate(census$area_name, ",")[,1]            #dummy object, no commas in non-county#
-noncounty=census[which(is.na(a)),]                 #keep non-county data together#
-county=census[which(!is.na(a)),]                   #keep county data together#
-rm(a)                                              #no need to keep#
+a <- str_locate(census$area_name, ",")[,1]            #dummy object, no commas in non-county#
+noncounty <- census[which(is.na(a)),]                 #keep non-county data together#
+county <- census[which(!is.na(a)),]                   #keep county data together#
+rm(a)                                                 #no need to keep#
 
 noncounty
 county
@@ -105,8 +97,8 @@ unique(county$area_name)[1:50]
 After verifying that the split worked as intended, we add a class to each tibble, overwriting the previous one.
 
 ```{r}
-class(county)=c("county", class(county))           
-class(noncounty)=c("state", class(noncounty))
+class(county) <- c("county", class(county))           
+class(noncounty) <- c("state", class(noncounty))
 
 class(county)
 class(noncounty)
@@ -115,10 +107,10 @@ class(noncounty)
 #### Classifying States And Counties (Step 5)
 With the distinct tables now in hand, we want to break up the `area_name` to both the county and state in the case of the `county` data, and to include the division in the case of the `noncounty` data. 
 
-In the `county` data, we are just extracting the last two characters of the string for the state abbreviation, and all parts of the string less the last four for the county (two for the state abbreviation, one for the space, one for the comma). We can do this succinctly with the same `str_sub` function, utilizing the `nchar` function in the process (which logically returns the number of characters a string has).
+In the `county` data, we are just extracting the last two characters of the string for the state abbreviation, and all parts of the string less the last four for the county (two for the state abbreviation, one for the space, one for the comma). We can do this succinctly with the same `str_sub()` function, utilizing the `nchar()` function in the process (which logically returns the number of characters a string has).
 
 ```{r}
-county=county |>
+county <- county |>
   mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)),
          district=str_sub(area_name, 1, nchar(county$area_name)-4)) |>
   select(area_name, state, district, everything())
@@ -130,24 +122,24 @@ county
 In the `noncounty` data, we are adding a variable corresponding to the state's classification of divisions found at [https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector](https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector). We store these classifications in a list called `region`. Note that the syntax of the strings in our list was choosen to follow the syntax of the names which exist in our `noncounty$area_name`.
 
 ```{r}
-d1=c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT")
-d2=c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA")
-d3=c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN")
-d4=c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA")
-d5=c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA")
-d6=c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE")
-d7=c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS")
-d8=c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING")
-d9=c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON")
+d1 <- c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT")
+d2 <- c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA")
+d3 <- c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN")
+d4 <- c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA")
+d5 <- c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA")
+d6 <- c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE")
+d7 <- c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS")
+d8 <- c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING")
+d9 <- c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON")
 
-region=list(d1,d2,d3,d4,d5,d6,d7,d8,d9)
+region <- list(d1,d2,d3,d4,d5,d6,d7,d8,d9)
 ```
 
-Next we initialize the `division` vector we want to add, and create a `for` loop to find it's values. The strategy in the loop is to look at each row of our `noncounty` data, then cycle through each element of the `region` list to find which column contains the state we are looking for. To do so, we utilize a `while` loop, only iterating to the next list element if our `area_name` wasn't in the previous list element (hence the use of the negation operator). Note the use of `[[]]` as opposed to `[]`-- we use the `%in%` function to check whether our row's `area_name` is in a *vector*. 
+Next we initialize the `division` vector we want to add, and create a `for()` loop to find it's values. The strategy in the loop is to look at each row of our `noncounty` data, then cycle through each element of the `region` list to find which column contains the state we are looking for. To do so, we utilize a `while` loop, only iterating to the next list element if our `area_name` wasn't in the previous list element (hence the use of the negation operator). Note the use of `[[]]` as opposed to `[]`-- we use the `%in%` function to check whether our row's `area_name` is in a *vector*. 
 
 
 ```{r}
-division=vector()
+division <- vector()
 
 for (i in 1:nrow(noncounty)) {
   j=1
@@ -174,7 +166,7 @@ In the first step to the data processing section above, we looked at selecting, 
 
 
 ```{r}
-function_for_step_1_2=function(url, default_var_name="observed") {
+function_for_step_1_2 <- function(url, default_var_name="observed") {
   tmp=read_csv(url) |>
     select(Area_name, STCOU, ends_with("D")) |>
     rename(area_name = Area_name) |>   
@@ -189,15 +181,13 @@ In the third step to the data processing section above, we looked at parsing str
 
 
 ```{r}
-function_for_step_3=function(mytibble) {
-  survey_type=str_sub(mytibble$code, start=1, end=7)
-  yy=as.numeric(str_sub(mytibble$code, start=8, end=9))
-  survey_year=as.numeric(ifelse(yy<=10,                        
-                                paste0("200", yy),
-                                paste0("19", yy)))
-  tmp=mytibble |>
-    mutate(survey_type=survey_type, survey_year=survey_year) |>
-    select(area_name, STCOU, code, survey_type, survey_year, observed)
+function_for_step_3 <- function(mytibble) {
+  tmp <- mytibble |>
+  mutate(survey_type=str_sub(code, start=1, end=7),
+         survey_year=year(parse_date_time(
+           str_sub(code, start=8, end=9), "y"))) |>
+  select(area_name, STCOU, code, survey_type, survey_year, observed)
+  
   return(tmp)
 }
 ```
@@ -205,7 +195,7 @@ function_for_step_3=function(mytibble) {
 Skipping a step, in the fifth step to the data processing section above, we looked at parsing our `area_name` into separate variables for the `state` and `county`. We now put this process into a single function `function_for_step_5`. 
 
 ```{r}
-function_for_step_5=function(mytibble) {
+function_for_step_5 <- function(mytibble) {
   tmp=mytibble |> 
     mutate(state=str_sub(area_name, nchar(mytibble$area_name) - 1, nchar(mytibble$area_name)),
            district=str_sub(area_name, 1, nchar(mytibble$area_name)-4)) |>
@@ -217,7 +207,7 @@ function_for_step_5=function(mytibble) {
 In the sixth step to the data processing section above, we looked at adding the division of our `area_name` to the tibble. We now put this process into a single function `function_for_step_6`. 
 
 ```{r}
-function_for_step_6=function(mytibble) {
+function_for_step_6 <- function(mytibble) {
   d1=c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT")
   d2=c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA")
   d3=c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN")
@@ -251,7 +241,7 @@ function_for_step_6=function(mytibble) {
 We now return to our skipped fourth step, breaking the data into county and non-county data. Our function just copies our previous procedure in the data prcessing section, and then applies our `function_for_step_5` and `function_for_step_6` to the split data. We return a list whose first element is our `county` tibble and whose second element is our `noncounty` tibble.
 
 ```{r}
-function_for_step_4_5_6=function(mytibble) {
+function_for_step_4_5_6 <- function(mytibble) {
   a=str_locate(mytibble$area_name, ",")[,1]            
   noncounty=mytibble[which(is.na(a)),]                 
   county=mytibble[which(!is.na(a)),]
@@ -269,7 +259,7 @@ function_for_step_4_5_6=function(mytibble) {
 Finally, we create a single wrapper function that brings all of the above functions together.
 
 ```{r}
-function_wrap=function(url, default_var_name="observed") {
+function_wrap <- function(url, default_var_name="observed") {
   result=function_for_step_1_2(url, default_var_name) |>
     function_for_step_3()|>
     function_for_step_4_5_6()
@@ -280,8 +270,11 @@ function_wrap=function(url, default_var_name="observed") {
 
 We check that this performs as expected by comparing it's output to the values we already computed. Using the `all.equal` function, we see that it does!
 
+```{r, output=FALSE}
+  test=function_wrap(url1)
+```
+
 ```{r}
-  suppressMessages({test=function_wrap(url1)})
   all.equal(test[[1]], county)
   all.equal(test[[2]], noncounty)
   rm(test)
@@ -289,12 +282,14 @@ We check that this performs as expected by comparing it's output to the values w
 
 With this function now in hand, we read in both the old data source and a new one accessible at [https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv](https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv).
 
+```{r, output=FALSE}
+url2 <- "https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
+
+tibble1 <- function_wrap(url1)
+tibble2 <- function_wrap(url2)
+```
+
 ```{r}
-url2="https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
-
-tibble1=function_wrap(url1)
-tibble2=function_wrap(url2)
-
 tibble1
 tibble2
 ```
@@ -303,29 +298,29 @@ tibble2
 We then write a function to combine like data with like data (i.e. the county data from the first data source is combined with the county data from the second data source). We use the base function `rbind()` to do so, though we could also use the `dplyr` function `bind_rows()`.
 
 ```{r}
-function_combine=function(mytib1, mytib2) {
+function_combine <- function(mytib1, mytib2) {
   county_data=rbind(mytib1[[1]],mytib2[[1]])
   non_county_data=rbind(mytib1[[2]], mytib2[[2]])
   return(list(county_data, non_county_data))
 }
 
-combined_data=function_combine(tibble1,tibble2)
+combined_data <- function_combine(tibble1,tibble2)
 combined_data
 ```
 
 
 ## Writing Generic Functions For Summarizing
-We now turn our attention to summarizing our results. We'd like to create functions that utilize the `ggplot2()` package in the `tidyverse` to return nice visuals of our data.
+We now turn our attention to summarizing our results. We'd like to create functions that utilize the `ggplot2` package in the `tidyverse` to return nice visuals of our data.
 
 ### Mean Enrollemnt By Division
 Our first function will summarize non-county data, returning the mean enrollment value by year for each division that the respective state is in. We only care about divisions, so exclude any values in our data that  aren't part of one by using `filter`. We want to plot our data for each division by year, so we use `group_by()` to do so. Finally, we want to find the mean value of each division each year, which we can grab with the `summarize()` function. We then plot this object using `ggplot()`, making small adjustments to make the output more visually appealing (such as centering the title with `theme(plot.title=element_text(hjust=0.5))` and removing `ggplots()` ugly default with ` theme_bw()`). 
 
 ```{r}
-plot_state=function(mytibble, default_var_name="observed") {
+plot_state <- function(mytibble, default_var_name="observed") {
   tmp=mytibble |>
     filter(division != "ERROR") |>
     group_by(division, survey_year) |>
-    summarize(mean_observed=mean(mean(get(default_var_name))))
+    summarize(mean_observed=mean(get(default_var_name)))
   
   ggplot(tmp, aes(x=survey_year, y=mean_observed, color=division)) +
     geom_line() +
@@ -349,7 +344,7 @@ We want to create a similar function to deal with county data, this time with mo
 
 
 ```{r}
-plot_county=function(mytibble, 
+plot_county <- function(mytibble, 
                         default_var_name="observed", 
                         default_state="NC",  
                         default_sort="top", 
@@ -406,7 +401,8 @@ url4="https://www4.stat.ncsu.edu/~online/datasets/PST01b.csv"
 url5="https://www4.stat.ncsu.edu/~online/datasets/PST01c.csv"
 url6="https://www4.stat.ncsu.edu/~online/datasets/PST01d.csv"
 
-url_list=list(url1, url2,url3,url4,url5,url6)
+url_list <- list(url1, url2,url3,url4,url5,url6)
+rm(url1,url2,url3,url4,url5,url6)
 ```
 
 For each url in our list, we apply our data processing function `function_wrap`. We create common names for the output of our data sources: `data1` for the first url (what we've previously called `census`), `data2` for the second, etc.
@@ -416,15 +412,19 @@ for (i in 1:6) {
   myvar=paste0("data",i)
   assign(myvar, function_wrap(url_list[[i]]))
 }
+
+rm(i, myvar)
 ```
 
 We then combine the data with our previously created `function_combine()`. We want to combine the first two urls and the last four urls.
 
 ```{r}
-first_urls=function_combine(data1,data2)
-second_urls=function_combine(data3,
+first_urls <- function_combine(data1,data2)
+second_urls <- function_combine(data3,
   function_combine(data4,
     function_combine(data5, data6)))
+
+rm(data1,data2,data3,data4,data5,data6)
 
 first_urls
 second_urls
