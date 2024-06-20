@@ -1,442 +1,521 @@
 ---
 title: "ST558 Project 1"
 author: "Flaherty and Lu"
-date: '`r format(Sys.Date(), "%B %d, %Y")`'
 format: html
 editor: visual
-editor_options: 
-  chunk_output_type: console
 ---
-
-# This is a development branch from Jia Lu.
 
 ## Data Processing
 
-### First steps
+We are interested in various types of census data, and aim to create functions that return visuals of said data from inputs of either urls or csv files. To start, we look at a single file before generalizing.
 
-1.  Read in data, select only columns (Area_name, STCOU, any colum that ends in "D"), and rename column Area_name as area_name.
+The file was made available at <https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv>. We could either download this locally and save it to our R session, accessing it through the working directory of our projects, or grab the data directly from the url. We opt for the latter. To start our analysis, we installed any packages we might need with `install.packages`, and call them here with `library()`.
+
+```{r, warning = FALSE, message=FALSE}
+library(tidyverse)            
+library(readxl)
+
+url1 <- "https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+census <- read_csv(url1)
+census
+```
+
+### Initial Data Exploration
+
+To get an initial glance at the data, we try normal summary functions. Since the output of these functions is so long, we admit it here. What is clear from the output is that without additional context for what the variables mean, the file contents would be very confusing.
+
+```{r, output=FALSE}
+str(census)
+summary(census)
+```
+
+Luckily we are given some of this information. The file contains census data from 2010, with distinct areas in each row, and census surveys in each column. The census surveys follow a code: the first three characters give the survey type (for example **AGE** in the `AGE010180D` code refers to age, while **EDU** in the `EDU640180D` code refers to education), the next four give the type of value from the survey (for example **6401** in the `EDU640180D` code refers to years of school complete, while **0101** in the `EDU010189D` code refers to public school enrollment), and the next two give the year (for example the **89** in the `EDU010189D` code refers to 1989). There is no data from before 1910.
+
+### Data Manipulation And Wrangling
+
+#### Select, Reshape, And Rename (Step 1 and 2)
+
+As is, the data is not in a great format for analysis. We want to filter down the data to just the columns we actually care about, and to put it in long format. That is, instead of a distinct area in each row with many different census types in the columns, we want to have just one record for each row, with an additional column added for the census code.
+
+To choose the columns we want, ew use the `select()` function from the `tidyverse`. To keep our naming conventions consistent, we also want to `rename()` certain columns. Additionally, we want to transform our data structure so that the columns holding count data are put in a single column, and the data from those columns put in a new column called `observed`. We can do so with the `pivot_longer()` function. Putting all these steps together with the natural chaining operation `|>`, we can overwrite our object as follows:
 
 ```{r}
-library(tidyverse)
-
-#read in csv data from URL
-edu01a_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv") |> 
+census <- census |>                   
   select(Area_name, STCOU, ends_with("D")) |>
-  rename("area_name" = "Area_name")
+  rename(area_name=Area_name) |>
+  pivot_longer(cols=ends_with("D"),
+               names_to="code",    
+               values_to="observed")
 
-edu01a_data
+census
 ```
 
-2.  Convert the data into long format where each row has only one enrollment value for that area_name.
+#### Break Apart Census Code (Step 3)
+
+In general, we want the smallest piece of data stored in it's own column. Specific to this file, the census code encodes a lot of information which we'd like to break up so that we can more easily filter it in the future.
+
+One way to do so is to extract the year from which the survey was conducted on, and store the year and census type in their own columns. Note that direct inspection on a csv file giving information on the variables. Therefor, we parse the string to pull out the year and convert the year into a numeric value such as 1997 or 2002. We then grab the first three characters and following four digits to create a new variable representing which measurement was grabbed using substr() function from baseR.
 
 ```{r}
-#manipulating data as required above
-edu01a_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv") |> 
-  select(Area_name, STCOU, ends_with("D")) |>
-  rename("area_name" = "Area_name") |> 
-  pivot_longer(cols = is.numeric,
-               names_to = "enrollment",
-               values_to = "value")
+census <- census |>
+  mutate(survey_type = substr(census$code, 1, 7), 
+         survey_year = substr(census$code, 8, 9)) |>
+  select(area_name, STCOU, code, survey_type, survey_year, observed)
 
-edu01a_data
+census$survey_year <- year(parse_date_time(census$survey_year, "y"))
+
+census
 ```
 
-3.  Parse the string from the "Enrollment" column to pull out the year, and convert the year into a numeric value. Grab the first three characters and following four digits to create a new variable.
+#### Break Into County Vs. Non-County Data (Step 4)
+
+In keeping with the above, we'd like to get more granular into our data, specifying the county name when available. To do so, we again rely on the `stringr` package and perform similar operations to the above.
+
+We first get a sense of the naming patters in our `area_name` column.
 
 ```{r}
-#creating new variables as required above
-edu01a_data <- edu01a_data |> 
-  mutate(measurement = substr(enrollment, 1, 7)) |> 
-  mutate(year = substr(enrollment, 8, 9))
-
-edu01a_data$year <- year(parse_date_time(edu01a_data$year, "y"))
-edu01a_data
+unique(census$area_name)[1:10]
 ```
 
-4.  Creating two data sets:
-
--   One data set that contains only non-county data. Add a class to the tibble called state.
--   One data set that contains only county level data. Add a class to the tibble called county
+Notice that commas exist in areas which have the county specified (like "Autauga, AL"), but there are no commas in areas without county-level data (like "ALABAMA"). We can split our existing `census` tibble into two different tibbles, one with county-level data and one without, by searching for the rows in the tibble which have a comma. The `str_locate()` function in the `stringr` package does the trick, taking in our vector of `area_name`'s, searching for the comma, and returning a matrix giving the starting and ending character of where the comma exists. Since a comma is only one character, we only need one of these columns, and so return just the first column from our matrix.
 
 ```{r}
-#get index to reference selecting rows
-county_index <- grep(pattern = ", \\w\\w", edu01a_data$area_name)
+#dummy object, no commas in non-county
+a <- str_locate(census$area_name, ",")[,1]
+#keep non-county data together
+noncounty <- census[which(is.na(a)),]
+#keep county data together
+county <- census[which(!is.na(a)),]
+#no need to keep
+rm(a)
 
-#subsetting data to get county level data
-county_data <- edu01a_data[county_index,]
-county_data
-
-class(county_data) <- c("county", class(county_data))
-class(county_data)
-
-#subsetting data to get non-county level data
-non_county_data <- edu01a_data[- county_index,]
-non_county_data
-
-class(non_county_data) <- c("state", class(non_county_data))
-class(non_county_data)
+noncounty
+county
 ```
 
-5.  For the county level tibble, create a new variable that describes which state one of these county measurements corresponds to (the two digit abbreviation).
+We can double check that this split worked as expected with `unique` from base R.
 
 ```{r}
-#get the last two characters from area_name
-county_data <- county_data |> 
-  mutate(state = substr(county_data$area_name, nchar(county_data$area_name) - 1, nchar(county_data$area_name)))
-
-county_data
+unique(noncounty$area_name)                        
+unique(county$area_name)[1:50]
 ```
 
-6.  For the non-county level tibble, create a new variable called “division” corresponding to the state’s classification of division here. If row corresponds to a non-state (i.e. UNITED STATES), return ERROR for the division.
+After verifying that the split worked as intended, we add a class to each tibble, overwriting the previous one.
 
 ```{r}
-#use ifelse() to group counties together into each corresponding division
-non_county_data <- non_county_data |>
-  mutate(division = ifelse(non_county_data$area_name %in% c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT"),"Division 1", 
-                           ifelse(non_county_data$area_name %in% c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA"), "Division 2", 
-                                  ifelse(non_county_data$area_name %in% c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN"), "Division 3",
-                                         ifelse(non_county_data$area_name %in% c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA"), "Division 4",
-                                                ifelse(non_county_data$area_name %in% c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA"), "Division 5",
-                                                       ifelse(non_county_data$area_name %in% c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE"), "Division 6",
-                                                              ifelse(non_county_data$area_name %in% c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS"), "Division 7",
-                                                                     ifelse(non_county_data$area_name %in% c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING"), "Division 8",
-                                                                            ifelse(non_county_data$area_name %in% c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON"), "Division 9",
-                                                                                   "ERROR"))))))))))
+class(county) <- c("county", class(county))           
+class(noncounty) <- c("state", class(noncounty))
 
-non_county_data
+class(county)
+class(noncounty)
 ```
 
-## Creating functions.
+#### Classifying States And Counties (Step 5)
 
--   Write one function that does steps 1 & 2 above. Give an optional argument that allows the user to specify the name of the column representing the value (enrollment for these data sets).
+With the distinct tables now in hand, we want to break up the `area_name` to both the county and state in the case of the `county` data, and to include the division in the case of the `noncounty` data.
+
+In the `county` data, we are just extracting the last two characters of the string for the state abbreviation, and all parts of the string less the last four for the county (two for the state abbreviation, one for the space, one for the comma). We can do this succinctly with the same `str_sub` function, utilizing the `nchar` function in the process (which logically returns the number of characters a string has).
+
+```{r}
+county <- county |>
+  mutate(state=str_sub(area_name, nchar(county$area_name) - 1, nchar(county$area_name)),
+         district=str_sub(area_name, 1, nchar(county$area_name)-4)) |>
+  select(area_name, state, district, everything())
+
+county
+```
+
+#### Classifying States And Divisions (Step 6)
+
+In the `noncounty` data, we are adding a variable corresponding to the state's classification of divisions found at <https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States?useskin=vector>. We store these classifications in a list called `region`. Note that the syntax of the strings in our list was choosen to follow the syntax of the names which exist in our `noncounty$area_name`.
+
+```{r}
+d1 <- c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT")
+d2 <- c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA")
+d3 <- c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN")
+d4 <- c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA")
+d5 <- c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA")
+d6 <- c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE")
+d7 <- c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS")
+d8 <- c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING")
+d9 <- c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON")
+
+region <- list(d1,d2,d3,d4,d5,d6,d7,d8,d9)
+```
+
+Next we initialize the `division` vector we want to add, and create a `for` loop to find it's values. The strategy in the loop is to look at each row of our `noncounty` data, then cycle through each element of the `region` list to find which column contains the state we are looking for. To do so, we utilize a `while` loop, only iterating to the next list element if our `area_name` wasn't in the previous list element (hence the use of the negation operator). Note the use of `[[]]` as opposed to `[]`-- we use the `%in%` function to check whether our row's `area_name` is in a *vector*.
+
+```{r}
+division <- vector()
+
+for (i in 1:nrow(noncounty)) {
+  j=1
+  while(j<=length(region) && !(noncounty$area_name[i] %in% region[[j]])) {
+    j=j+1
+  }
+  division[i] <- ifelse(j<=length(region), j, "ERROR")
+}
+
+noncounty$division <- division
+noncounty <- noncounty |> select(area_name, division, everything())
+
+#keep environment clean
+rm(d1,d2,d3,d4,d5,d6,d7,d8,d9,region,division,i,j)
+
+noncounty
+```
+
+## Function Writing
+
+We want to create functions that can do all the above with just the input of a file path or url.
+
+In the first step to the data processing section above, we looked at selecting, renaming, and reshaping our data. We create a function that performs these steps below, essentially just copying our steps into a user-defined function (udf) called `function_for_step_1_2`. Note that the input to the function must be a string (i.e. the url must be in quotes).
 
 ```{r}
 #create a function to read in csv data and reshaping data from wide to long
-function_for_step_1_2 <- function(url, what_var_name = "value") {
+function_for_step_1_2 <- function(url, default_var_name="observed") {
   tmp <- read_csv(url) |>
     select(Area_name, STCOU, ends_with("D")) |>
     rename("area_name" = "Area_name") |>   
-    pivot_longer(cols = is.numeric,
-                 names_to = "enrollment",
-                 values_to = what_var_name)
+    pivot_longer(cols = ends_with("D"),
+                 names_to = "code",
+                 values_to = default_var_name)
   return(tmp)
 }
 ```
 
--   Write another function that takes in the output of step 2 and does step 3 above.
+In the third step to the data processing section above, we looked at parsing strings, specifically breaking up the census code into the survey type and survey year. We again put the process we followed into a single function `function_for_step_3` that takes as input the output from `function_for_step_1_2`. Note that we must have renamed the census codes to `code` upon reshaping the data in `function_for_step_1_2` for this to work.
 
 ```{r}
-#create a function to add new variables and convert strings to date
-function_for_step_3 <- function(tmp) {
-  tmp <- tmp |> 
-    mutate(measurement = substr(enrollment, 1, 7)) |>
-    mutate(year = substr(enrollment, 8, 9))
+
+function_for_step_3 <- function(mytibble) {
+  mytibble <- mytibble |>
+  mutate(survey_type = substr(code, 1, 7), 
+         survey_year = substr(code, 8, 9)) |>
+  select(area_name, STCOU, code, survey_type, survey_year, everything())
   
-  tmp$year <- year(parse_date_time(tmp$year, "y"))
-  return(tmp)
+  mytibble$survey_year <- year(parse_date_time(mytibble$survey_year, "y"))
+  
+  return(mytibble)
 }
 ```
 
--   Write a function to do step 5.
+Skipping a step, in the fifth step to the data processing section above, we looked at parsing our `area_name` into separate variables for the `state` and `county`. We now put this process into a single function `function_for_step_5`.
 
 ```{r}
-#create a function to grab the abbreviation names of states from column area_name
-function_for_step_5 <- function(county_data) {
-  county_data <- county_data |> 
-    mutate(state = substr(county_data$area_name, nchar(county_data$area_name) - 1, nchar(county_data$area_name)))
-  return(county_data)
+function_for_step_5 <- function(mytibble) {
+  mytibble <- mytibble |> 
+    mutate(state=str_sub(area_name, nchar(mytibble$area_name) - 1,
+                         nchar(mytibble$area_name)),
+           district=str_sub(area_name, 1, nchar(mytibble$area_name)-4)) |>
+    select(area_name, state, district, everything())
+  return(mytibble)
 }
 ```
 
--   Write a function to do step 6.
+In the sixth step to the data processing section above, we looked at adding the division of our `area_name` to the tibble. We now put this process into a single function `function_for_step_6`.
 
 ```{r}
-#create a function to group counties together into corresponding divisions
-function_for_step_6 <- function(non_county_data) {
-  non_county_data <- non_county_data |>
-    mutate(division = ifelse(non_county_data$area_name %in% c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT"),"Division 1", 
-                             ifelse(non_county_data$area_name %in% c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA"), "Division 2", 
-                                    ifelse(non_county_data$area_name %in% c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN"), "Division 3",
-                                           ifelse(non_county_data$area_name %in% c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA"), "Division 4",
-                                                  ifelse(non_county_data$area_name %in% c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA"), "Division 5",
-                                                         ifelse(non_county_data$area_name %in% c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE"), "Division 6",
-                                                                ifelse(non_county_data$area_name %in% c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS"), "Division 7",
-                                                                       ifelse(non_county_data$area_name %in% c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING"), "Division 8",
-                                                                              ifelse(non_county_data$area_name %in% c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON"), "Division 9",
-                                                                                     "ERROR"))))))))))
-  return(non_county_data)
+function_for_step_6 <- function(mytibble) {
+  d1 <- c("CONNECTICUT", "MAINE", "MASSACHUSETTS", "NEW HAMPSHIRE", "RHODE ISLAND", "VERMONT")
+  d2 <- c("NEW JERSEY", "NEW YORK", "PENNSYLVANIA")
+  d3 <- c("ILLINOIS", "INDIANA", "MICHIGAN", "OHIO", "WISCONSIN")
+  d4 <- c("IOWA", "KANSAS", "MINNESOTA", "MISSOURI", "NEBRASKA", "NORTH DAKOTA", "SOUTH DAKOTA")
+  d5 <- c("DELAWARE", "FLORIDA", "GEORGIA", "MARYLAND", "NORTH CAROLINA", "SOUTH CAROLINA", "VIRGINIA", "DISTRICT OF COLUMBIA", "District of Columbia", "WEST VIRGINIA")
+  d6 <- c("ALABAMA", "KENTUCKY", "MISSISSIPPI", "TENNESSEE")
+  d7 <- c("ARKANSAS", "LOUISIANA", "OKLAHOMA", "TEXAS")
+  d8 <- c("ARIZONA", "COLORADO", "IDAHO", "MONTANA", "NEVADA", "NEW MEXICO", "UTAH", "WYOMING")
+  d9 <- c("ALASKA", "CALIFORNIA", "HAWAII", "OREGON", "WASHINGTON")
+  
+  region <- list(d1,d2,d3,d4,d5,d6,d7,d8,d9)
+  division <- vector()
+  
+  for (i in 1:nrow(mytibble)) {
+    j=1
+    
+    while(j<=length(region) && !(mytibble$area_name[i] %in% region[[j]])) {
+      j=j+1
+    }
+    
+    division[i] <- ifelse(j<=length(region), j, "ERROR")
+  }
+  mytibble$division <- division
+  
+  tmp <- mytibble |>
+    select(area_name, division, everything())
+   return(tmp) 
 }
 ```
 
--   Write another function that takes in the output from step 3 and creates the two tibbles in step 4, calls the above two functions (to perform steps 5 and 6), and returns two final tibbles.
+We now return to our skipped fourth step, breaking the data into county and non-county data. Our function just copies our previous procedure in the data prcessing section, and then applies our `function_for_step_5` and `function_for_step_6` to the split data. We return a list whose first element is our `county` tibble and whose second element is our `noncounty` tibble.
 
 ```{r}
-#create a function to do multiple things as required above
-function_for_steps4_5_6 <- function(tmp) {
-  county_index <- grep(pattern = ", \\w\\w", tmp$area_name)
-  county_data <- tmp[county_index,]
-  class(county_data) <- c("county", class(county_data))
+function_for_step_4_5_6 <- function(mytibble) {
+  a <- str_locate(mytibble$area_name, ",")[,1]            
+  noncounty <- mytibble[which(is.na(a)),]                 
+  county <- mytibble[which(!is.na(a)),]
   
-  non_county_data <- tmp[- county_index,]
-  class(non_county_data) <- c("state", class(non_county_data))
+  class(county) <- c("county", class(county))           
+  class(noncounty) <- c("state", class(noncounty))      
   
-  county_data <- county_data |> function_for_step_5 ()
-  non_county_data <- non_county_data |> function_for_step_6 ()
+  county <- function_for_step_5(county)
+  noncounty <- function_for_step_6(noncounty)
   
-  return(list(county_data, non_county_data))
-} 
+  return(list(county,noncounty))
+}
 ```
 
--   Creating a wrapper function that takes in the URL of a .csv file in this format and the optional argument for the variable name, calls the functions you wrote above, and then returns the two tibbles.
+Finally, we create a single wrapper function that brings all of the above functions together.
 
 ```{r}
-#create a wrapper function that perform all the tasks together as required above
-my_wrapper <- function(url, what_var_name = "value") {
-  result <- function_for_step_1_2(url, what_var_name) |>
-    function_for_step_3() |>
-    function_for_steps4_5_6 ()
+function_wrap <- function(url, default_var_name="observed") {
+  result <- function_for_step_1_2(url, default_var_name) |>
+    function_for_step_3()|>
+    function_for_step_4_5_6()
   
   return(result)
 }
 ```
 
-### Call it and combine data.
-
--   Call the function two times and parse the two .csv files mentioned so far.
+We check that this performs as expected by comparing it's output to the values we already computed. Using the `all.equal` function, we see that it does!
 
 ```{r}
-edu01a_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv")
-edu01a_data_from_wrapper
-
-edu01b_data_from_wrapper <-
-my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv")
-edu01b_data_from_wrapper
+  suppressMessages({test=function_wrap(url1)})
+  all.equal(test[[1]], county)
+  all.equal(test[[2]], noncounty)
+  rm(test)
 ```
 
--   Write a single short function that takes in the results of two calls to the wrapper function.
+With this function now in hand, we read in both the old data source and a new one accessible at <https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv>.
 
 ```{r}
-#create a function to combine data from two datasets
-combining_data <- function(tmp_1, tmp_2) {
-  county_data_combined <- dplyr::bind_rows(tmp_1[[1]], tmp_2[[1]])
-  non_county_data_combined <- dplyr::bind_rows(tmp_1[[2]], tmp_2[[2]])
-  
-  tmp_3 <- list(county_data_combined, non_county_data_combined)
-  
-  return(tmp_3)
+url2 <- "https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
+
+tibble1 <- function_wrap(url1)
+tibble2 <- function_wrap(url2)
+
+tibble1
+tibble2
+```
+
+## Call Function And Combine Data
+
+We then write a function to combine like data with like data (i.e. the county data from the first data source is combined with the county data from the second data source). We use the base function `rbind()` to do so, though we could also use the `dplyr` function `bind_rows()`.
+
+```{r}
+function_combine <- function(mytib1, mytib2) {
+  county_data <- rbind(mytib1[[1]],mytib2[[1]])
+  non_county_data <- rbind(mytib1[[2]], mytib2[[2]])
+  return(list(county_data, non_county_data))
 }
 
-data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
-data_combined
+combined_data <- function_combine(tibble1,tibble2)
+combined_data
 ```
 
-## Writing a Generic Function for Summarizing.
+## Writing Generic Functions For Summarizing
 
-### for the non-county level tibble
+We now turn our attention to summarizing our results. We'd like to create functions that utilize the `ggplot2()` package in the `tidyverse` to return nice visuals of our data.
 
-- Write a function that plots the mean value of the statistic (enrollment for this data set) across the years for each Division. That is, on the x-axis we want the numeric year value, on the y-axis we want the mean of the statistic for each Division and numeric year. Remove observations at the ERROR setting of Division.
-- plot the data with year as x-axis and mean enrollment value as y-axis for different divisions
+### Mean Enrollemnt By Division
+
+Our first function will summarize non-county data, returning the mean enrollment value by year for each division that the respective state is in. We only care about divisions, so exclude any values in our data that aren't part of one by using `filter`. We want to plot our data for each division by year, so we use `group_by()` to do so. Finally, we want to find the mean value of each division each year, which we can grab with the `summarize()` function. We then plot this object using `ggplot()`, making small adjustments to make the output more visually appealing (such as centering the title with `theme(plot.title=element_text(hjust=0.5))` and removing `ggplots()` ugly default with `theme_bw()`).
 
 ```{r}
-#Method 1: using mean(get()) to reference column name as required
-plot.state <- function(combined_state_data, what_var_name = "value") {
-  
-  combined_state_data <- combined_state_data |>
+plot_state <- function(mytibble, default_var_name = "observed") {
+  mytibble <- mytibble |>
     filter(division != "ERROR") |>
-    group_by(division, year) |>
-    summarize(mean_value = mean(get(what_var_name)))
-
-  ggplot(combined_state_data, aes(x = year, y = mean_value, color = division)) +
-    geom_line() +
-    labs(x = "Year",
-         y = "Mean Enrollment Value",
-         color = "Division",
-         title = "Mean Enrollment Value by Year and Division")
-}
-
-plot.state(combined_state_data = data_combined[[2]])
-```
-
-
-```{r}
-#Method 2: using {{}} to reference column name to reach the same goal
-plot.state <- function(combined_state_data, what_var_name = value) {
-  combined_state_data <- combined_state_data |>
-    filter(division != "ERROR") |>
-    group_by(division, year) |>
-    summarize(mean_value = mean({{what_var_name}}))
-
-  ggplot(combined_state_data, aes(x = year, y = mean_value, color = division)) +
-    geom_line() +
-    labs(x = "Year",
-         y = "Mean Enrollment Value",
-         color = "Division",
-         title = "Mean Enrollment Value by Year and Division")
-}
-
-plot.state(combined_state_data = data_combined[[2]])
-```
-
-### for the county level tibble
-
-- filter the data to only include data from the state specified
-- find the overall mean of the statistic (use get(var_name) here as well) for each Area_name and sort those values from largest to smallest if ‘top’ is specified or smallest to largest if ‘bottom’ is specified
-- obtain the top or bottom x number of Area_names from the previous step where x is given by the user or the default
-- filter the data for this state to only include the Area_name’s from the previous part 
-- plot the data with year as x-axis and original enrollment value as y-axis for counties refereed in query
-
-```{r}
-#create a function as required above
-plot.county <- function(combined_county_data, what_var_name = "value", which_state = "NC",  top_or_bottom = "top", how_many_obs = 5){
+    group_by(division, survey_year) |>
+    summarize(mean_observed=mean(get(default_var_name)))
   
-  if (top_or_bottom == "top") {
-    area_name_for_plot <- combined_county_data |>
-      filter(state == which_state) |>
+  ggplot(mytibble, aes(x=survey_year, y=mean_observed, color=division)) +
+    geom_line() +
+    labs(x="Year", 
+         y="Mean Enrollemnt Value", 
+         color="Division", 
+         title="Mean Enrollment Value by Year and Division") +
+    theme_bw() +
+    theme(plot.title=element_text(hjust=0.5))
+}
+```
+
+To make sure the function works as expected, we pass in the output from our `combined_data()`.
+
+```{r}
+plot_state(combined_data[[2]])
+```
+
+### Mean Data By County
+
+We want to create a similar function to deal with county data, this time with more flexibility. We'd like to be able to show how only the top (or bottom) counties in a given state change over time. We put in a few default values. For example, if no state is inputted, we also look at North Carolina, if no sort type is provided we always look at the top values, etc. The function first extracts the top/bottom counties in the specified state using normal `dplyr` functions, then filters the inputted tibble to just those counties, and finally plots how the values change over time in a similar way to our \``ggplot2` functions above.
+
+```{r}
+plot_county <- function(mytibble, 
+                        default_var_name="observed", 
+                        default_state="NC",  
+                        default_sort="top", 
+                        default_count=5){
+  
+  if (default_sort == "top") {
+    area_name_for_plot=mytibble |>
+      filter(state == default_state) |>
       group_by(area_name) |>
-      summarize(mean_value = mean(get(what_var_name))) |>
+      summarize(mean_value = mean(get(default_var_name))) |>
       arrange(desc(mean_value)) |>
-      slice(1:how_many_obs) |>
+      slice(1:default_count) |>
       pull(area_name)
-    
-    area_name_for_plot
-  } else if (top_or_bottom == "bottom") {
-    area_name_for_plot <- combined_county_data |>
-      filter(state == which_state) |>
+  } else if (default_sort == "bottom") {
+    area_name_for_plot=mytibble |>
+      filter(state == default_state) |>
       group_by(area_name) |>
-      summarize(mean_value = mean(get(what_var_name))) |>
+      summarize(mean_value = mean(get(default_var_name))) |>
       arrange(mean_value) |>
-      slice(1:how_many_obs) |>
+      slice(1:default_count) |>
       pull(area_name)
-    
-    area_name_for_plot
   } 
-
-  plot_state <- combined_county_data |>
+  
+  plots_state <- mytibble |>
     filter(area_name %in% area_name_for_plot)
   
-  ggplot(plot_state, aes(x = year, y = get(what_var_name), color = area_name)) +
+  ggplot(plots_state, aes(x = survey_year, y = get(default_var_name), color = area_name)) +
     geom_line() +
     labs(x = "Year",
          y = "Enrollment Value",
          color = "Counties",
-         title = "Enrollment Value by Year in Counties Referred")
+         title = "Enrollment Value by Year in Counties Referred") +
+    theme_bw() +
+    theme(plot.title=element_text(hjust=0.5))
 }
-
-#plot.county(combined_county_data = data_combined[[1]], what_var_name = "value", which_state = "CA",  top_or_bottom = "bottom", how_many_obs = 10)
-
-plot.county(combined_county_data = data_combined[[1]], which_state = "NC")
-
 ```
 
-## Put it together
-
-###Read in two datasets
-
-- Run your data processing function on the two enrollment URLs given previously, specifying an appropriate name for the enrollment data column.
+To make sure it works as expected, we try it on one of our first datasets.
 
 ```{r}
-# Pick a different name "enroll_value" instead of the default value "value" for the name of the enrollment data column
-#read in one dataset
-edu01a_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv", what_var_name = "enroll_value")
-
-edu01a_data_from_wrapper
-
-#read in another dataset
-edu01b_data_from_wrapper <-
-my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv", what_var_name = "enroll_value")
-
-edu01b_data_from_wrapper
-
+plot_county(combined_data[[1]], "observed", "NC", "top", 5)
 ```
 
-- Run your data combining function to put these into one object (with two data frames)
+## Put It Together
+
+### Testing Our Functions
+
+Now we run data processing function on the two enrollment URLs given previously, specifying a different name "enroll_value" instead of the default value "observed" for the name for the enrollment data column. And then we run the data combining function to put these into one object (with two data frames).
 
 ```{r}
-#combine two datasets
-data_combined <- combining_data(edu01a_data_from_wrapper, edu01b_data_from_wrapper)
-data_combined
+#Read from the first URL
+url1 <- "https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+first_urls <- function_wrap(url1, "enroll_value")
+first_urls
+
+#Read from the second URL
+url2 <- "https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
+second_urls <- function_wrap(url2, "enroll_value")
+second_urls
+
+combined_data <- function_combine(first_urls, second_urls)
+combined_data
 ```
 
-- Use the plot function on the state data frame
+We then use the plot function on the state data.
 
 ```{r}
-#Use the previously picked different name "enroll_value" to refer to the name of the enrollment data column here
-plot.state(combined_state_data = data_combined[[2]], what_var_name = enroll_value)
+plot_state(combined_data[[2]], "enroll_value")
 ```
 
-- Use the plot function on the county data frame
+Then we look at various iterations of our `plot_county()` function. First we specify the state to be “NC”, the group being the top, the number looked at being 20.
 
 ```{r}
-#Specifying the state to be “NC”, the group being the top, the number looked at being 20
-plot.county(combined_county_data = data_combined[[1]], what_var_name = "enroll_value", which_state = "NC", top_or_bottom = "top", how_many_obs = 20)
-
-#Specifying the state to be “SC”, the group being the bottom, the number looked at being 7
-plot.county(combined_county_data = data_combined[[1]], what_var_name = "enroll_value", which_state = "SC", top_or_bottom = "bottom", how_many_obs = 7)
-
-#Without specifying anything (defaults used)
-plot.county(combined_county_data = data_combined[[1]], what_var_name = "enroll_value")
-
-#Specifying the state to be “PA”, the group being the top, the number looked at being 8
-plot.county(combined_county_data = data_combined[[1]], what_var_name = "enroll_value", which_state = "PA", top_or_bottom = "top", how_many_obs = 8)
+plot_county(combined_data[[1]], "enroll_value", "NC", "top", 20)
 ```
 
-###Read in four datasets
-
-- Run your data processing function on the four data sets with given URLs
+Next we specify the state to be South Carolina, the group to be the bottom, and the number being looked at to be 7.
 
 ```{r}
-#Use the default what_var_name ("value") without specifying here
-pst01a_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/PST01a.csv")
-pst01a_data_from_wrapper
-
-pst01b_data_from_wrapper <-
-my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/PST01b.csv")
-pst01b_data_from_wrapper
-
-pst01c_data_from_wrapper <- my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/PST01c.csv")
-pst01c_data_from_wrapper
-
-pst01d_data_from_wrapper <-
-my_wrapper("https://www4.stat.ncsu.edu/~online/datasets/PST01d.csv")
-pst01d_data_from_wrapper
+plot_county(combined_data[[1]], "enroll_value", "SC", "bottom", 7)
 ```
 
-- Run your data combining function (probably three times) to put these into one object (with two data frames)
+We can also just use our defaults. Note here we still need to use "enroll_value" since we previously used "enroll_value" as our column name when we read data. If we want to use the default name "observed" for our column name, we need to first read in data with this default name just as the code commented below.
 
 ```{r}
-#Combine datasets from pst01a_data_from_wrapper and pst01b_data_from_wrapper
-data_combined_a_b <- combining_data(pst01a_data_from_wrapper, pst01b_data_from_wrapper)
-data_combined_a_b
+plot_county(combined_data[[1]], default_var_name = "enroll_value")
 
-#Combine datasets from pst01c_data_from_wrapper and pst01d_data_from_wrapper
-data_combined_c_d <- combining_data(pst01c_data_from_wrapper, pst01d_data_from_wrapper)
-data_combined_c_d
-
-#Combine all four datasets together
-data_combined <- combining_data(data_combined_a_b, data_combined_c_d)
-data_combined
+# url1 <- "https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+# first_urls <- function_wrap(url1)
+# first_urls
+# 
+# url2 <- "https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv"
+# second_urls <- function_wrap(url2)
+# second_urls
+# 
+# combined_data <- function_combine(first_urls, second_urls)
+# combined_data
+# 
+# plot_county(first_urls[[1]])
 ```
 
-- Use the plot function on the state data frame
+And finally we can specify the state to be Pennsylvania, the group being the top, and the number looked at being 8.
 
 ```{r}
-#Use the default what_var_name ("value") without specifying here
-plot.state(combined_state_data = data_combined[[2]])
+plot_county(combined_data[[1]], "enroll_value", "PA", "top", 8)
 ```
 
-- Use the plot function on the county data frame
+### Add New Data
+
+In addition to the two urls we already have, we would also like to explore four other data sources. We put these urls into a list, which we plan to loop through in the future.
 
 ```{r}
-#Specifying the state to be “CA”, the group being the top, the number looked at being 15 with the default what_var_name ("value") 
-plot.county(combined_county_data = data_combined[[1]], which_state = "CA", top_or_bottom = "top", how_many_obs = 15)
+url3 <- "https://www4.stat.ncsu.edu/~online/datasets/PST01a.csv"
+url4 <- "https://www4.stat.ncsu.edu/~online/datasets/PST01b.csv"
+url5 <- "https://www4.stat.ncsu.edu/~online/datasets/PST01c.csv"
+url6 <- "https://www4.stat.ncsu.edu/~online/datasets/PST01d.csv"
 
-#Specifying the state to be “TX”, the group being the top, the number looked at being 4 with the default what_var_name ("value") 
-plot.county(combined_county_data = data_combined[[1]], which_state = "TX", top_or_bottom = "top", how_many_obs = 4)
-
-#Without specifying anything (defaults used)
-plot.county(combined_county_data = data_combined[[1]])
-
-#Specifying the state to be “NY”, the group being the top, the number looked at being 10 with the default what_var_name ("value") 
-plot.county(combined_county_data = data_combined[[1]], which_state = "NY", top_or_bottom = "top", how_many_obs = 10)
+url_list <- list(url3,url4,url5,url6)
 ```
 
+For each url in our list, we apply our data processing function `function_wrap`. We create common names for the output of our data sources: `data1` for the first url (what we've previously called `census`), `data2` for the second, etc.
+
+```{r, output=FALSE}
+for (i in 1:4) {
+  myvar <- paste0("data",i)
+  assign(myvar, function_wrap(url_list[[i]]))
+}
+```
+
+We then combine the data with our previously created `function_combine()`. We want to combine the four urls.
+
+```{r}
+combined_data_1_2 <- function_combine(data1, data2)
+combined_data_3_4 <- function_combine(data3, data4)
+
+combined_data_all <- function_combine(combined_data_1_2, combined_data_3_4)
+combined_data_all
+```
+
+We then use the plot function on the state data frame from above combined four datasets. Note that we used the default variable name when we read in data. Therefore, we don't specify a different name here and afterwards.
+
+```{r}
+plot_state(combined_data_all[[2]])
+```
+
+We can specify our state to be California, the group being the top, and the number looked at being 15 below.
+
+```{r}
+plot_county(combined_data_all[[1]], "observed", "CA", "top", 15)
+```
+
+Anoter example is to specify our state to be Texas, the group being the top, and the number being looked at 4 below.
+
+```{r}
+plot_county(combined_data_all[[1]], "observed", "TX", "top", 4)
+```
+
+We can just use our defaults too.
+
+```{r}
+plot_county(combined_data_all[[1]])
+```
+
+Finally, we can specify the state to be New York, the group being the top, and the number being looked at to be 10.
+
+```{r}
+plot_county(combined_data_all[[1]], "observed", "NY", "top", 10)
+```
